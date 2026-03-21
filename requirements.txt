@@ -1,0 +1,14 @@
+flask
+pandas
+numpy
+matplotlib
+scikit-learn
+python-dotenv
+requests
+groq
+google-generativeai
+werkzeug
+openpyxl
+gunicorn
+flask-cors
+flask-limiter

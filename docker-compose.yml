@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: ai-data-analyst
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_PORT=5000
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - HF_API_KEY=${HF_API_KEY}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./cleaned_data:/app/cleaned_data
+      - ./logs:/app/logs
+      - ./instance:/app/instance
+    restart: unless-stopped
+    # Optional: Add health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

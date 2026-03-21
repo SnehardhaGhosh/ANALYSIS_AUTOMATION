@@ -1,0 +1,58 @@
+# 🔐 Environment variables
+.env
+.env.*
+
+# 🐍 Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 🧪 Virtual environment
+venv/
+env/
+ENV/
+
+# 📦 Logs
+logs/
+*.log
+
+# 🗄️ Database
+instance/
+*.db
+
+# 📁 Uploaded & generated data
+uploads/
+cleaned_data/
+*.csv
+
+# 🧪 Test / temp files
+tmp_*.py
+test_*.py
+*.tmp
+
+# 📓 Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# 💻 OS files
+.DS_Store
+Thumbs.db
+
+# 🐳 Docker (optional)
+docker-compose.override.yml
+
+# 🧾 Generated files
+structure.txt
+
+# 🔧 IDE files
+.vscode/
+.idea/
+
+# 📝 Python build files
+build/
+dist/
+*.egg-info/
+
+# 🔑 Security
+*.pem
+*.key

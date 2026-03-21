@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>AI Data Chat</h2>
+<p>Ask questions about your uploaded data</p>
+
+<div class="chat-container">
+    <div class="chat-box" id="chat-box"></div>
+    
+    <div class="input-area">
+        <input type="text" id="query" placeholder="e.g., What is the total profit? or Show me correlations..." required>
+        <button onclick="sendQuery()" class="btn-primary">Ask AI</button>
+    </div>
+</div>
+
+<script>
+async function sendQuery() {
+    let queryInput = document.getElementById("query");
+    let query = queryInput.value.trim();
+    
+    if (!query) return;
+    
+    let chatBox = document.getElementById("chat-box");
+    
+    // Add user message
+    chatBox.innerHTML += `<div class="message user-message">
+        <strong>You:</strong> ${query}
+    </div>`;
+    
+    // Show loading
+    let loadingDiv = document.createElement('div');
+    loadingDiv.className = 'message ai-message loading';
+    loadingDiv.innerHTML = '<strong>AI:</strong> Analyzing your data...';
+    chatBox.appendChild(loadingDiv);
+    
+    chatBox.scrollTop = chatBox.scrollHeight;
+    
+    try {
+        let response = await fetch("/ask", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ query: query })
+        });
+        
+        let data = await response.json();
+        
+        // Remove loading
+        chatBox.removeChild(loadingDiv);
+        
+        if (data.error) {
+            chatBox.innerHTML += `<div class="message ai-message error">
+                <strong>AI:</strong> ${data.error}
+            </div>`;
+        } else {
+            // Rule-based answer
+            if (data.rule_based_answer && data.rule_based_answer !== "Query not recognized...") {
+                chatBox.innerHTML += `<div class="message ai-message rule-based">
+                    <strong>Quick Analysis:</strong> ${data.rule_based_answer}
+                </div>`;
+            }
+            
+            // AI interpretation
+            chatBox.innerHTML += `<div class="message ai-message">
+                <strong>AI Analysis:</strong> ${data.ai_interpretation}
+            </div>`;
+        }
+    } catch (error) {
+        chatBox.removeChild(loadingDiv);
+        chatBox.innerHTML += `<div class="message ai-message error">
+            <strong>AI:</strong> Sorry, there was an error processing your request.
+        </div>`;
+    }
+    
+    queryInput.value = '';
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Allow Enter key to send
+document.getElementById("query").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        sendQuery();
+    }
+});
+</script>
+
+{% endblock %}

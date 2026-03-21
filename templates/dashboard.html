@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="text-center mb-5">
+    <h2 class="display-4">
+        <i class="fas fa-chart-line text-primary"></i> AI Data Analyst
+    </h2>
+    <p class="lead">Welcome back! Let's analyze your data with the power of AI.</p>
+</div>
+
+<div class="steps">
+    <div class="step {{ 'completed' if session.get('dataset') else 'active' }}">
+        <i class="fas fa-upload fa-2x text-primary mb-3"></i>
+        <h3>1. Upload Data</h3>
+        <p>Upload your CSV, Excel, or JSON file to get started</p>
+        <a href="/upload"><button class="btn btn-primary">Upload File</button></a>
+    </div>
+
+    <div class="step {{ 'completed' if session.get('dataset') else 'disabled' }}">
+        <i class="fas fa-eye fa-2x text-info mb-3"></i>
+        <h3>2. Preview & Validate</h3>
+        <p>Review your cleaned and processed data</p>
+        {% if session.get('dataset') %}
+        <a href="/preview"><button class="btn btn-info">View Preview</button></a>
+        {% endif %}
+    </div>
+
+    <div class="step {{ 'completed' if session.get('dataset') else 'disabled' }}">
+        <i class="fas fa-robot fa-2x text-success mb-3"></i>
+        <h3>3. Analyze with AI</h3>
+        <p>Ask intelligent questions about your data</p>
+        {% if session.get('dataset') %}
+        <a href="/chat"><button class="btn btn-success">Start Chat</button></a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-file-upload fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Multiple Formats</h5>
+                <p class="card-text">Support for CSV, Excel (.xlsx/.xls), and JSON files</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-brain fa-3x text-success mb-3"></i>
+                <h5 class="card-title">AI-Powered Analysis</h5>
+                <p class="card-text">Get intelligent insights and answers from your data</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Data Visualization</h5>
+                <p class="card-text">Interactive charts and visualizations</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display: grid; grid-template-columns: 1fr 350px; gap: 20px; height: calc(100vh - 150px); padding: 20px;">
+    <!-- Chat Section -->
+    <div>
+        <h2>AI Data Chat</h2>
+        <p>Ask questions about your uploaded data</p>
+
+        <div class="chat-container" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="chat-box" id="chat-box" style="flex: 1; overflow-y: auto; margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa;"></div>
+            
+            <div class="input-area">
+                <input type="text" id="query" placeholder="e.g., What is the total profit? Or Show me trends..." required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <button onclick="sendQuery()" class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px; cursor: pointer;">Ask AI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visualizations Panel -->
+    <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; overflow-y: auto; max-height: calc(100vh - 200px);">
+        <h4 style="margin-top: 0;">📊 Data Insights</h4>
+        <div id="visualizations-container" style="font-size: 13px; line-height: 1.6;">
+            <p style="color: #999;">Loading data insights...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load visualizations on page load
+window.addEventListener('load', function() {
+    loadVisualizations();
+    loadChatHistory();
+});
+
+// Load chat history
+function loadChatHistory() {
+    fetch('/api/chat-history')
+        .then(res => res.json())
+        .then(data => {
+            const chatBox = document.getElementById('chat-box');
+            if (data.history && data.history.length > 0) {
+                chatBox.innerHTML = '';
+                data.history.forEach(msg => {
+                    chatBox.innerHTML += `<div style="padding:12px; margin:10px 0; text-align:right; margin-left:60px;">
+                        <div style="background:#2196f3; color:white; padding:10px 14px; border-radius:12px; display:inline-block; max-width:500px; word-wrap:break-word; text-align:left; font-size:14px; line-height:1.5;">
+                            ${msg.query}
+                        </div>
+                    </div>`;
+                    chatBox.innerHTML += `<div style="padding:12px; margin:10px 0; margin-right:60px;">
+                        <div style="background:#f0f0f0; padding:12px 14px; border-radius:12px; font-size:14px; line-height:1.6; color:#333;">
+                            ${msg.response.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>`;
+                });
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        })
+        .catch(err => console.log('No previous chat'));
+}
+
+// Load visualizations
+function loadVisualizations() {
+    fetch('/api/visualizations')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('visualizations-container');
+            let html = '';
+            
+            // Statistics
+            if (data.statistics && data.statistics.mean) {
+                html += '<div style="margin-bottom: 15px;"><strong>📈 Statistics</strong><br>';
+                for (let col in data.statistics.mean) {
+                    const val = data.statistics.mean[col];
+                    if (val !== null && !isNaN(val)) {
+                        html += `<small>${col}: ${parseFloat(val).toFixed(2)}</small><br>`;
+                    }
+                }
+                html += '</div>';
+            }
+            
+            // Numeric columns summary
+            if (data.numeric_columns) {
+                html += '<div style="margin-bottom: 15px;"><strong>🔢 Data Ranges</strong><br>';
+                for (let col in data.numeric_columns) {
+                    const info = data.numeric_columns[col];
+                    html += `<small><strong>${col}</strong><br>`;
+                    html += `Min: ${parseFloat(info.min).toFixed(1)} | Max: ${parseFloat(info.max).toFixed(1)}<br>`;
+                    if (info.sum) {
+                        html += `Sum: ${parseFloat(info.sum).toFixed(0)}<br>`;
+                    }
+                    html += '</small><br>';
+                }
+                html += '</div>';
+            }
+            
+            // Categorical summary
+            if (data.categorical_summary && Object.keys(data.categorical_summary).length > 0) {
+                html += '<div><strong>🏷️ Categories</strong><br>';
+                for (let col in data.categorical_summary) {
+                    const info = data.categorical_summary[col];
+                    html += `<small><strong>${col}</strong>: ${info.unique_values} unique</small><br>`;
+                }
+                html += '</div>';
+            }
+            
+            container.innerHTML = html || '<p style="color: #999;">No insights available</p>';
+        })
+        .catch(err => {
+            console.log('Error loading visualizations:', err);
+            document.getElementById('visualizations-container').innerHTML = '<p style="color: #d32f2f;">Error loading insights</p>';
+        });
+}
+
+// Updated sendQuery function
+async function sendQuery() {
+    const queryInput = document.getElementById("query");
+    const chatBox = document.getElementById("chat-box");
+    const query = queryInput.value.trim();
+
+    if (!query) {
+        alert("Please enter a query");
+        return;
+    }
+
+    // Display user message
+    chatBox.innerHTML += `<div style="padding:12px; margin:10px 0; text-align:right; margin-left:60px;">
+        <div style="background:#2196f3; color:white; padding:10px 14px; border-radius:12px; display:inline-block; max-width:500px; word-wrap:break-word; text-align:left; font-size:14px; line-height:1.5;">
+            ${query}
+        </div>
+    </div>`;
+
+    // Show loading
+    const loadingDiv = document.createElement('div');
+    loadingDiv.style.cssText = 'padding:12px; color:#666; margin:10px 0; margin-right:60px; font-size:14px;';
+    loadingDiv.textContent = '⏳ Analyzing your data...';
+    chatBox.appendChild(loadingDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    queryInput.value = "";
+
+    try {
+        const response = await fetch("/ask", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ query: query })
+        });
+
+        const data = await response.json();
+        
+        chatBox.removeChild(loadingDiv);
+
+        if (data.error) {
+            chatBox.innerHTML += `<div style="padding:12px; color:#d32f2f; background:#ffebee; border-radius:6px; margin:10px 0; margin-right:60px; font-size:14px;">❌ ${data.error}</div>`;
+        } else if (data.response) {
+            chatBox.innerHTML += `<div style="padding:12px; margin:10px 0; margin-right:60px;">
+                <div style="background:#f0f0f0; padding:12px 14px; border-radius:12px; font-size:14px; line-height:1.6; color:#333;">
+                    ${data.response.replace(/\n/g, '<br>')}
+                </div>
+            </div>`;
+        }
+
+    } catch (error) {
+        chatBox.removeChild(loadingDiv);
+        chatBox.innerHTML += `<div style="padding:12px; color:#d32f2f; background:#ffebee; border-radius:6px; margin:10px 0; margin-right:60px; font-size:14px;">❌ Error: ${error.message}</div>`;
+    }
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Allow Enter key to send
+document.getElementById("query").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        sendQuery();
+    }
+});
+</script>
+
+{% endblock %}
