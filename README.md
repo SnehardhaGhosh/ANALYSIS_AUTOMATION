@@ -4,6 +4,30 @@
 
 A modern, production-ready Flask web application that allows users to upload data files (CSV, Excel, JSON) and interact with an AI-powered data analysis system. The application provides a sequential workflow from login to data analysis with a beautiful, responsive UI.
 
+## Recent Updates (March 22, 2026) - By Soumyadeep Sarkar
+
+### 🔄 Session Persistence & Live Website Behavior
+- **Added Flask-Session**: Implemented filesystem-based session storage for persistent user sessions across server restarts and page refreshes
+- **Live Website Experience**: Users can now refresh pages without losing uploaded data, chat history, or dashboard state
+- **24-Hour Session Lifetime**: Sessions persist for 24 hours, providing a true web application experience
+
+### 💬 Enhanced Chat Interface
+- **Chat History Sidebar**: Added a collapsible sidebar displaying previous conversations with timestamps
+- **Interactive History**: Click on any previous chat to reload and view the conversation
+- **Real-time Updates**: Chat history automatically refreshes after each new conversation
+
+### 🤖 AI Dataset Accuracy
+- **Cleaned Dataset Priority**: AI now analyzes the cleaned dataset instead of processed data for more accurate insights
+- **Fallback Logic**: Enhanced AI model fallback system (Groq → HuggingFace → Gemini) with better error handling
+
+### 🐛 Bug Fixes
+- **Template Syntax Error**: Fixed Jinja2 template syntax error in chat.html caused by duplicate content
+- **Session Management**: Resolved session data loss issues during development
+
+### 📦 Dependencies
+- **Flask-Session**: Added for persistent session management
+- **Enhanced Error Handling**: Improved robustness across all components
+
 ## Quick Start
 
 ```bash
@@ -21,6 +45,8 @@ gunicorn --bind 0.0.0.0:5000 --workers 4 wsgi:app
 ```
 
 See [PRODUCTION.md](PRODUCTION.md) for detailed production setup instructions.
+
+**📋 Daily Updates**: Check [UPDATES_Soumyadeep_Sarkar_MARCH_22_2026.md](UPDATES_Soumyadeep_Sarkar_MARCH_22_2026.md) for detailed changelog of recent enhancements.
 
 A modern, production-ready Flask web application that allows users to upload data files (CSV, Excel, JSON) and interact with an AI-powered data analysis system. The application provides a sequential workflow from login to data analysis with a beautiful, responsive UI.
 
@@ -51,15 +77,17 @@ A modern, production-ready Flask web application that allows users to upload dat
 - Responsive Bootstrap-based design
 - Gradient backgrounds and modern styling
 - Step-by-step workflow guidance
-- Real-time chat interface
+- **Real-time chat interface with interactive history sidebar**
 - Mobile-friendly design
+- Persistent sessions across page refreshes
 
 ### 🛡️ Production Features
 - Comprehensive error handling and logging
 - File type validation and security checks
-- Session management
+- **Persistent session management with Flask-Session** (24-hour lifetime)
 - SQLite database with proper schema
 - Environment variable configuration
+- **Live website behavior with session persistence across refreshes**
 
 ## Installation
 
@@ -174,6 +202,7 @@ ai-data-analyst/
 ├── logs/                 # Application logs
 ├── instance/             # Instance-specific data
 │   └── database.db      # SQLite database
+├── flask_session/        # Session data storage (auto-created)
 └── tests/                # Test files
 ```
 
@@ -186,10 +215,12 @@ ai-data-analyst/
 - `HF_API_KEY`: API key for Hugging Face
 
 ### AI Models
-The application supports multiple AI models:
-- **Groq** (Default): Fast inference with Llama models
-- **Hugging Face**: Router API for various models
-- **Gemini**: Google's generative AI
+The application supports multiple AI models with automatic fallback:
+- **Groq** (Primary): Fast inference with Llama models
+- **Hugging Face** (Secondary): Router API for various models
+- **Gemini** (Fallback): Google's generative AI
+
+**Fallback Logic**: If the primary model fails, the system automatically tries the next available model, ensuring reliable AI responses.
 
 ## Security Features
 
@@ -272,6 +303,23 @@ For support and questions:
 - Open an issue on GitHub
 
 ## Changelog
+
+### Version 1.1.0 - March 22, 2026 (By Soumyadeep Sarkar)
+- **Session Persistence**: Added Flask-Session for persistent sessions across server restarts
+- **Live Website Behavior**: Implemented 24-hour session lifetime for true web app experience
+- **Chat History Sidebar**: Added interactive chat history with timestamps and click-to-reload functionality
+- **AI Dataset Accuracy**: Fixed AI to analyze cleaned dataset instead of processed data
+- **Template Fixes**: Resolved Jinja2 syntax error in chat.html template
+- **Enhanced Error Handling**: Improved AI model fallback and error recovery
+- **Dependencies**: Added Flask-Session to requirements.txt
+
+### Version 1.0.0 - Initial Release
+- Complete Flask web application with user authentication
+- Multi-format file upload (CSV, Excel, JSON)
+- AI-powered data analysis with multiple model support
+- Responsive Bootstrap UI
+- Production-ready configuration
+- Comprehensive error handling and logging
 
 ### Version 1.0.0
 - Initial release with core functionality
