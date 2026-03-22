@@ -1,12 +1,42 @@
 import pandas as pd
 import numpy as np
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 def validate_data(df):
     """
     Comprehensive data validation with analyst-friendly reporting
     Detects: null counts, missing values, wrong patterns, data types
+    Includes error handling to prevent crashes
     """
+    try:
+        return _validate_data_internal(df)
+    except Exception as e:
+        logger.error(f"Validation error: {str(e)}")
+        # Return safe default report on error
+        return {
+            'dataset_info': {
+                'total_rows': int(len(df)),
+                'total_columns': len(df.columns)
+            },
+            'data_quality_analysis': {
+                'columns': {}
+            },
+            'data_type_analysis': {},
+            'pattern_validation': {},
+            'quality_warnings': [
+                {
+                    'severity': 'warning',
+                    'issue': f'Validation warning: {str(e)}',
+                    'action': 'Continue with caution'
+                }
+            ],
+            'quality_score': 50
+        }
+
+def _validate_data_internal(df):
     report = {
         'dataset_info': {
             'total_rows': int(len(df)),
@@ -21,73 +51,119 @@ def validate_data(df):
         'quality_score': 0
     }
     
-    # Analyze each column
+    # Analyze each column with error protection
     for col in df.columns:
-        col_data = df[col]
-        col_analysis = {}
-        
-        # 1. Data Type Detection
-        inferred_dtype = infer_column_type(col_data)
-        col_analysis['detected_type'] = inferred_dtype
-        col_analysis['pandas_dtype'] = str(col_data.dtype)
-        
-        # 2. Null & Missing Values Analysis
-        null_count = int(col_data.isnull().sum())
-        # For string columns, also check for empty strings, whitespace
-        if inferred_dtype == 'string':
-            empty_str_count = (col_data.fillna('').astype(str).str.strip() == '').sum()
-            missing_count = null_count + empty_str_count
-        else:
-            missing_count = null_count
-        
-        col_analysis['null_count'] = null_count
-        col_analysis['missing_values_count'] = missing_count
-        col_analysis['non_null_count'] = int(col_data.notna().sum())
-        col_analysis['missing_percentage'] = round(missing_count / len(df) * 100, 2)
-        
-        # 3. Data Type Specific Analysis
-        if inferred_dtype == 'numeric':
-            valid_numeric = col_data.dropna()
-            col_analysis['statistics'] = {
-                'min': float(valid_numeric.min()) if len(valid_numeric) > 0 else None,
-                'max': float(valid_numeric.max()) if len(valid_numeric) > 0 else None,
-                'mean': float(valid_numeric.mean()) if len(valid_numeric) > 0 else None,
-                'median': float(valid_numeric.median()) if len(valid_numeric) > 0 else None,
-                'std_dev': float(valid_numeric.std()) if len(valid_numeric) > 0 else None
-            }
+        try:
+            col_data = df[col]
+            col_analysis = {}
             
-            # Check for outliers using IQR
-            Q1 = valid_numeric.quantile(0.25)
-            Q3 = valid_numeric.quantile(0.75)
-            IQR = Q3 - Q1
-            outlier_count = ((valid_numeric < Q1 - 1.5 * IQR) | (valid_numeric > Q3 + 1.5 * IQR)).sum()
-            col_analysis['outlier_count'] = int(outlier_count)
-            col_analysis['outlier_percentage'] = round(outlier_count / len(valid_numeric) * 100, 2) if len(valid_numeric) > 0 else 0
+            # 1. Data Type Detection
+            try:
+                inferred_dtype = infer_column_type(col_data)
+            except Exception as type_err:
+                logger.warning(f"Could not infer type for column {col}: {type_err}")
+                inferred_dtype = 'unknown'
+            
+            col_analysis['detected_type'] = inferred_dtype
+            col_analysis['pandas_dtype'] = str(col_data.dtype)
+            
+            # 2. Null & Missing Values Analysis
+            null_count = int(col_data.isnull().sum())
+            # For string columns, also check for empty strings, whitespace
+            if inferred_dtype == 'string':
+                try:
+                    empty_str_count = (col_data.fillna('').astype(str).str.strip() == '').sum()
+                    missing_count = null_count + int(empty_str_count)
+                except:
+                    missing_count = null_count
+            else:
+                missing_count = null_count
+            
+            col_analysis['null_count'] = null_count
+            col_analysis['missing_values_count'] = missing_count
+            col_analysis['non_null_count'] = int(col_data.notna().sum())
+            col_analysis['missing_percentage'] = round(missing_count / len(df) * 100, 2) if len(df) > 0 else 0
+            
+            # 3. Data Type Specific Analysis
+            if inferred_dtype == 'numeric':
+                try:
+                    valid_numeric = col_data.dropna()
+                    col_analysis['statistics'] = {
+                        'min': float(valid_numeric.min()) if len(valid_numeric) > 0 else None,
+                        'max': float(valid_numeric.max()) if len(valid_numeric) > 0 else None,
+                        'mean': float(valid_numeric.mean()) if len(valid_numeric) > 0 else None,
+                        'median': float(valid_numeric.median()) if len(valid_numeric) > 0 else None,
+                        'std_dev': float(valid_numeric.std()) if len(valid_numeric) > 0 else None
+                    }
+                    
+                    # Check for outliers using IQR
+                    if len(valid_numeric) > 0:
+                        Q1 = valid_numeric.quantile(0.25)
+                        Q3 = valid_numeric.quantile(0.75)
+                        IQR = Q3 - Q1
+                        outlier_count = ((valid_numeric < Q1 - 1.5 * IQR) | (valid_numeric > Q3 + 1.5 * IQR)).sum()
+                        col_analysis['outlier_count'] = int(outlier_count)
+                        col_analysis['outlier_percentage'] = round(outlier_count / len(valid_numeric) * 100, 2)
+                    else:
+                        col_analysis['outlier_count'] = 0
+                        col_analysis['outlier_percentage'] = 0
+                except Exception as num_err:
+                    logger.warning(f"Error analyzing numeric column {col}: {num_err}")
+                    col_analysis['statistics'] = {'error': 'Could not compute statistics'}
+                    col_analysis['outlier_count'] = 0
+                    col_analysis['outlier_percentage'] = 0
+            
+            elif inferred_dtype == 'datetime':
+                try:
+                    col_analysis['date_range'] = {
+                        'min': str(col_data.min()),
+                        'max': str(col_data.max())
+                    }
+                except Exception as dt_err:
+                    logger.warning(f"Error analyzing datetime column {col}: {dt_err}")
+                    col_analysis['date_range'] = {}
+            
+            elif inferred_dtype == 'string':
+                try:
+                    non_null = col_data.dropna()
+                    non_empty = non_null[non_null.astype(str).str.strip() != '']
+                    col_analysis['unique_values'] = int(col_data.nunique())
+                    col_analysis['top_values'] = non_empty.value_counts().head(3).to_dict()
+                    col_analysis['avg_string_length'] = round(non_empty.astype(str).str.len().mean(), 2) if len(non_empty) > 0 else 0
+                except Exception as str_err:
+                    logger.warning(f"Error analyzing string column {col}: {str_err}")
+                    col_analysis['unique_values'] = int(col_data.nunique())
+                    col_analysis['top_values'] = {}
+                    col_analysis['avg_string_length'] = 0
+            
+            elif inferred_dtype == 'boolean':
+                try:
+                    col_analysis['value_counts'] = col_data.value_counts().to_dict()
+                except Exception as bool_err:
+                    logger.warning(f"Error analyzing boolean column {col}: {bool_err}")
+                    col_analysis['value_counts'] = {}
+            
+            # 4. Pattern Validation
+            try:
+                pattern_issues = detect_pattern_issues(col_data, inferred_dtype, col)
+                if pattern_issues:
+                    col_analysis['pattern_issues'] = pattern_issues
+                    report['pattern_validation'][col] = pattern_issues
+            except Exception as pattern_err:
+                logger.warning(f"Error detecting patterns for column {col}: {pattern_err}")
+            
+            report['data_quality_analysis']['columns'][col] = col_analysis
+            report['data_type_analysis'][col] = inferred_dtype
         
-        elif inferred_dtype == 'datetime':
-            col_analysis['date_range'] = {
-                'min': str(col_data.min()),
-                'max': str(col_data.max())
+        except Exception as col_err:
+            logger.warning(f"Error analyzing column {col}: {str(col_err)}")
+            # Add minimal analysis for failed column
+            report['data_quality_analysis']['columns'][col] = {
+                'detected_type': 'unknown',
+                'pandas_dtype': str(df[col].dtype),
+                'error': f'Analysis failed: {str(col_err)}'
             }
-        
-        elif inferred_dtype == 'string':
-            non_null = col_data.dropna()
-            non_empty = non_null[non_null.astype(str).str.strip() != '']
-            col_analysis['unique_values'] = int(col_data.nunique())
-            col_analysis['top_values'] = non_empty.value_counts().head(3).to_dict()
-            col_analysis['avg_string_length'] = round(non_empty.astype(str).str.len().mean(), 2) if len(non_empty) > 0 else 0
-        
-        elif inferred_dtype == 'boolean':
-            col_analysis['value_counts'] = col_data.value_counts().to_dict()
-        
-        # 4. Pattern Validation
-        pattern_issues = detect_pattern_issues(col_data, inferred_dtype, col)
-        if pattern_issues:
-            col_analysis['pattern_issues'] = pattern_issues
-            report['pattern_validation'][col] = pattern_issues
-        
-        report['data_quality_analysis']['columns'][col] = col_analysis
-        report['data_type_analysis'][col] = inferred_dtype
+            report['data_type_analysis'][col] = 'unknown'
     
     # 5. Generate Quality Warnings
     warnings = []
@@ -207,9 +283,14 @@ def detect_pattern_issues(col, dtype, col_name):
         
         # Check for special encoding issues
         try:
-            col_clean.astype(str).encode('ascii')
-        except UnicodeEncodeError:
-            issues.append("Contains non-ASCII characters (may cause issues)")
+            for val in col_clean.astype(str):
+                try:
+                    val.encode('ascii')
+                except UnicodeEncodeError:
+                    issues.append("Contains non-ASCII characters (may cause issues)")
+                    break
+        except Exception:
+            pass
         
         # Check for very long strings (potential data entry errors)
         long_strings = (col_clean.astype(str).str.len() > 500).sum()

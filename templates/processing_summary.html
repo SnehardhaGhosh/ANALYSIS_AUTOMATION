@@ -6,6 +6,7 @@
         border-left: 5px solid #0d6efd;
         background: #f8f9fa;
         margin-bottom: 20px;
+        border-radius: 5px;
     }
     .step-card.complete {
         border-left-color: #198754;
@@ -27,22 +28,24 @@
     }
     .metric-box {
         background: white;
-        padding: 15px;
-        border-radius: 5px;
+        padding: 20px;
+        border-radius: 8px;
         margin: 10px 0;
         border: 1px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .metric-label {
         color: #6c757d;
-        font-size: 12px;
-        font-weight: 600;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .metric-value {
-        font-size: 24px;
+        font-size: 28px;
         font-weight: bold;
         color: #212529;
-        margin-top: 5px;
+        margin-top: 8px;
     }
     .metric-value.success {
         color: #198754;
@@ -53,64 +56,50 @@
     .metric-value.danger {
         color: #dc3545;
     }
-    .detail-list {
-        list-style: none;
-        padding: 0;
-        margin: 10px 0;
-    }
-    .detail-list li {
-        padding: 8px;
-        border-bottom: 1px solid #dee2e6;
-        font-size: 14px;
-    }
-    .detail-list li:last-child {
-        border-bottom: none;
-    }
-    .quality-bar {
-        height: 8px;
-        background: #e9ecef;
-        border-radius: 4px;
-        overflow: hidden;
-        margin: 10px 0;
-    }
-    .quality-bar-fill {
-        height: 100%;
-        background: #198754;
-        transition: width 0.3s ease;
-    }
-    .quality-bar-fill.warning {
-        background: #ffc107;
-    }
-    .quality-bar-fill.danger {
-        background: #dc3545;
-    }
-    .timeline-step {
-        display: flex;
-        margin: 20px 0;
-    }
-    .timeline-marker {
-        min-width: 20px;
-        text-align: center;
-        font-weight: bold;
-        color: #198754;
-        margin-right: 15px;
-    }
-    .timeline-content {
-        flex: 1;
-        padding: 10px;
-        background: #f0f9f6;
-        border-left: 2px solid #198754;
-    }
     .data-quality-section {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 30px;
-        border-radius: 8px;
+        padding: 40px;
+        border-radius: 10px;
         margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .quality-score-large {
+        font-size: 64px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .quality-score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        font-weight: bold;
+        border: 3px solid rgba(255,255,255,0.5);
+    }
+    .info-box {
+        background: #d1ecf1;
+        border-left: 4px solid #17a2b8;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
     }
     .warning-box {
         background: #fff3cd;
         border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+    }
+    .success-box {
+        background: #d4edda;
+        border-left: 4px solid #198754;
         padding: 15px;
         margin: 10px 0;
         border-radius: 4px;
@@ -122,92 +111,230 @@
         margin: 10px 0;
         border-radius: 4px;
     }
-    .info-box {
-        background: #d1ecf1;
-        border-left: 4px solid #17a2b8;
-        padding: 15px;
-        margin: 10px 0;
-        border-radius: 4px;
+    .column-stats-table {
+        font-size: 14px;
+        margin-top: 15px;
     }
-    .column-stats-grid {
+    .column-stats-table thead {
+        background: #f8f9fa;
+    }
+    .column-stats-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+    .badge-type {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .badge-type.numeric {
+        background: #e7f3ff;
+        color: #0d6efd;
+    }
+    .badge-type.string {
+        background: #f0f0f0;
+        color: #495057;
+    }
+    .badge-type.datetime {
+        background: #ffe8d6;
+        color: #fd7e14;
+    }
+    .timeline-item {
+        display: flex;
+        margin: 20px 0;
+        padding: 15px;
+        background: white;
+        border-radius: 5px;
+        border-left: 4px solid #0d6efd;
+    }
+    .timeline-item.success {
+        border-left-color: #198754;
+    }
+    .timeline-item.warning {
+        border-left-color: #ffc107;
+    }
+    .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 15px;
         margin: 15px 0;
     }
-    .column-card {
+    .stat-card {
         background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
         padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
     }
-    .column-card .col-name {
-        font-weight: bold;
-        color: #0d6efd;
-        margin-bottom: 10px;
-    }
-    .column-card .col-type {
-        display: inline-block;
-        background: #e7f3ff;
-        color: #0d6efd;
-        padding: 3px 8px;
-        border-radius: 3px;
+    .stat-card-label {
         font-size: 12px;
+        color: #6c757d;
         font-weight: 600;
-        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+    .stat-card-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #212529;
+        margin-top: 5px;
+    }
+    .progress-item {
+        display: flex;
+        align-items: center;
+        margin: 12px 0;
+    }
+    .progress-label {
+        flex: 1;
+        font-weight: 500;
+        font-size: 14px;
+    }
+    .progress-bar-container {
+        flex: 2;
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0 15px;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        background: #198754;
+        width: 100%;
+    }
+    .progress-value {
+        font-weight: 600;
+        color: #212529;
+        min-width: 50px;
+        text-align: right;
     }
 </style>
 
-<div class="container-fluid py-5">
+<div class="container-fluid py-4">
     <!-- Header Section -->
     <div class="data-quality-section">
         <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 style="margin: 0; font-weight: 700;">
+            <div class="col-lg-8">
+                <h1 style="margin: 0; font-weight: 700; font-size: 32px;">
                     <i class="fas fa-check-circle"></i> Data Processing Complete
                 </h1>
-                <p style="margin-top: 10px; font-size: 16px; opacity: 0.95;">
-                    Your dataset has been validated, cleaned, preprocessed, and transformed. Here's what happened:
+                <p style="margin-top: 12px; font-size: 16px; opacity: 0.95;">
+                    Your dataset has been successfully validated, cleaned, preprocessed, and transformed for analysis
                 </p>
             </div>
-            <div class="col-md-4 text-end">
-                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
-                    <div style="font-size: 14px; opacity: 0.9;">DATA QUALITY SCORE</div>
-                    <div style="font-size: 48px; font-weight: bold; margin-top: 5px;">
-                        {{ reports.data_quality_score | round(1) }}%
+            <div class="col-lg-4">
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    <div style="text-align: center;">
+                        <div class="quality-score-circle">
+                            {{ reports.summary.data_quality_score | round(1) }}<span style="font-size: 24px;">%</span>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 14px; opacity: 0.9;">Quality Score</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Overview Metrics -->
+    <!-- Key Metrics Overview -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="metric-box">
                 <div class="metric-label">📤 Original Rows</div>
-                <div class="metric-value">{{ reports.original_rows }}</div>
+                <div class="metric-value">{{ reports.summary.original_rows | int }}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="metric-box">
                 <div class="metric-label">📥 Final Rows</div>
-                <div class="metric-value {% if reports.original_rows == reports.final_rows %}success{% endif %}">{{ reports.final_rows }}</div>
+                <div class="metric-value {% if reports.summary.rows_removed == 0 %}success{% else %}warning{% endif %}">
+                    {{ reports.summary.final_rows | int }}
+                </div>
+                <small class="text-muted">{{ reports.summary.rows_removed | int }} removed</small>
             </div>
         </div>
         <div class="col-md-3">
             <div class="metric-box">
                 <div class="metric-label">📊 Total Columns</div>
-                <div class="metric-value">{{ reports.final_columns }}</div>
+                <div class="metric-value">{{ reports.summary.final_columns | int }}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="metric-box">
-                <div class="metric-label">⚠️ Data Issues</div>
-                <div class="metric-value {% if reports.validation_report.quality_warnings|length > 0 %}danger{% else %}success{% endif %}">
-                    {{ reports.validation_report.quality_warnings|length }}
+                <div class="metric-label">💾 Memory Usage</div>
+                <div class="metric-value">{{ reports.summary.memory_usage_mb }} MB</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Quality Metrics -->
+    <div class="card step-card complete mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <span class="step-number">📋</span>
+                <strong>Data Quality Summary</strong>
+                <span class="badge bg-success ms-2">Complete</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-label">🗑️ Duplicates Removed</div>
+                    <div class="stat-card-value">{{ reports.summary.duplicates_removed | int }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">⚠️ Nulls Handled</div>
+                    <div class="stat-card-value">{{ reports.summary.nulls_handled | int }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">📈 Outliers Handled</div>
+                    <div class="stat-card-value">{{ reports.summary.outliers_handled | int }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-label">🔍 Issues Found</div>
+                    <div class="stat-card-value danger">
+                        {% if reports.validation.quality_warnings %}
+                            {{ reports.validation.quality_warnings | length }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
                 </div>
             </div>
+
+            <!-- Null Values by Column -->
+            {% if reports.summary.column_null_counts %}
+            <hr>
+            <h6 class="mt-3"><strong>Missing Values by Column</strong></h6>
+            <div style="overflow-x: auto;">
+                <table class="table table-sm column-stats-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Null Count</th>
+                            <th>Percentage</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col, null_info in reports.summary.column_null_counts.items() %}
+                        <tr>
+                            <td><strong>{{ col }}</strong></td>
+                            <td>{{ null_info.count }}</td>
+                            <td>{{ null_info.percentage }}%</td>
+                            <td>
+                                {% if null_info.percentage > 50 %}
+                                    <span class="badge bg-danger">High</span>
+                                {% elif null_info.percentage > 20 %}
+                                    <span class="badge bg-warning">Moderate</span>
+                                {% else %}
+                                    <span class="badge bg-info">Low</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -216,81 +343,86 @@
         <div class="card-header bg-light">
             <h5 class="mb-0">
                 <span class="step-number">1</span>
-                <strong>Data Validation</strong>
+                <strong>Data Validation & Analysis</strong>
                 <span class="badge bg-success ms-2">Complete</span>
             </h5>
         </div>
         <div class="card-body">
-            <p class="text-muted mb-3">Analyzed data types, detected missing values, nulls, and pattern issues</p>
+            <p class="text-muted mb-3">Analyzed data types, detected missing values, nulls, outliers, and data quality issues</p>
             
-            <div class="row">
-                <div class="col-md-6">
-                    <h6><strong>Quality Metrics</strong></h6>
-                    <ul class="detail-list">
-                        <li><strong>Total Rows:</strong> {{ reports.validation_report.dataset_info.total_rows }}</li>
-                        <li><strong>Total Columns:</strong> {{ reports.validation_report.dataset_info.total_columns }}</li>
-                        <li><strong>Quality Score:</strong> {{ reports.validation_report.quality_score }}%</li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h6><strong>Data Issues Detected</strong></h6>
-                    {% if reports.validation_report.quality_warnings|length > 0 %}
-                        <ol style="font-size: 14px; padding-left: 20px;">
-                            {% for warning in reports.validation_report.quality_warnings[:5] %}
-                            <li>
-                                <strong>{{ warning.column }}:</strong> {{ warning.issue }}
-                                <span class="badge bg-{% if warning.severity == 'critical' %}danger{% elif warning.severity == 'warning' %}warning{% else %}info{% endif %} ms-2">
-                                    {{ warning.severity | upper }}
-                                </span>
-                            </li>
-                            {% endfor %}
-                            {% if reports.validation_report.quality_warnings|length > 5 %}
-                            <li><em>+{{ reports.validation_report.quality_warnings|length - 5 }} more issues</em></li>
-                            {% endif %}
-                        </ol>
-                    {% else %}
-                    <p class="text-success"><i class="fas fa-check"></i> No major data quality issues detected!</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Column Type Analysis -->
-            <h6 class="mt-3"><strong>Column Data Types Detected</strong></h6>
-            <div class="column-stats-grid">
-                {% for col, dtype in reports.validation_report.data_type_analysis.items() %}
-                <div class="column-card">
-                    <div class="col-name">{{ col }}</div>
-                    <div>
-                        <span class="col-type">
-                            {% if dtype == 'numeric' %}
-                                <i class="fas fa-hashtag"></i> Numeric
-                            {% elif dtype == 'string' %}
-                                <i class="fas fa-font"></i> String
-                            {% elif dtype == 'datetime' %}
-                                <i class="fas fa-calendar"></i> DateTime
-                            {% elif dtype == 'boolean' %}
-                                <i class="fas fa-toggle-on"></i> Boolean
-                            {% else %}
-                                <i class="fas fa-question"></i> {{ dtype | title }}
-                            {% endif %}
+            {% if reports.validation.quality_warnings and reports.validation.quality_warnings | length > 0 %}
+            <div class="warning-box">
+                <strong>⚠️ Data Quality Issues Detected:</strong>
+                <ol style="margin-top: 10px; margin-bottom: 0; padding-left: 20px;">
+                    {% for warning in reports.validation.quality_warnings[:10] %}
+                    <li style="margin: 8px 0;">
+                        <strong>{{ warning.column }}:</strong> {{ warning.issue }}
+                        <span class="badge bg-{% if warning.severity == 'critical' %}danger{% elif warning.severity == 'warning' %}warning{% else %}info{% endif %} ms-2">
+                            {{ warning.severity | upper }}
                         </span>
-                    </div>
-                    {% set col_info = reports.validation_report.data_quality_analysis.columns[col] %}
-                    <div style="margin-top: 10px; font-size: 13px; color: #666;">
-                        <div><strong>Null Count:</strong> {{ col_info.null_count }}</div>
-                        <div><strong>Missing Count:</strong> {{ col_info.missing_values_count }}</div>
-                        <div><strong>Missing %:</strong> {{ col_info.missing_percentage }}%</div>
-                        {% if col_info.get('outlier_count') %}
-                        <div><strong>Outliers:</strong> {{ col_info.outlier_count }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
+                    </li>
+                    {% endfor %}
+                    {% if reports.validation.quality_warnings | length > 10 %}
+                    <li><em>+{{ reports.validation.quality_warnings | length - 10 }} more issues</em></li>
+                    {% endif %}
+                </ol>
+            </div>
+            {% else %}
+            <div class="success-box">
+                <strong>✅ No major data quality issues detected!</strong> Your data passed all validation checks.
+            </div>
+            {% endif %}
+
+            <!-- Column Data Types -->
+            <h6 class="mt-4 mb-3"><strong>Column Data Types Detected ({{ reports.summary.final_columns }} columns)</strong></h6>
+            <div style="overflow-x: auto;">
+                <table class="table table-sm column-stats-table">
+                    <thead>
+                        <tr>
+                            <th>Column Name</th>
+                            <th>Data Type</th>
+                            <th>Null Count</th>
+                            <th>Missing %</th>
+                            <th>Unique Values</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col in reports.validation.data_type_analysis %}
+                        {% set dtype = reports.validation.data_type_analysis[col] %}
+                        {% set col_info = reports.validation.data_quality_analysis.columns[col] %}
+                        <tr>
+                            <td><strong>{{ col }}</strong></td>
+                            <td>
+                                <span class="badge-type {% if dtype == 'numeric' %}numeric{% elif dtype == 'string' %}string{% elif dtype == 'datetime' %}datetime{% else %}string{% endif %}">
+                                    {{ dtype | title }}
+                                </span>
+                            </td>
+                            <td>{{ col_info.null_count }}</td>
+                            <td>
+                                <div class="progress-item" style="margin: 0;">
+                                    <div class="progress-bar-container" style="margin: 0; flex: 1;">
+                                        <div class="progress-bar-fill" style="width: {{ col_info.missing_percentage }}%; background: {% if col_info.missing_percentage > 50 %}#dc3545{% elif col_info.missing_percentage > 20 %}#ffc107{% else %}#198754{% endif %};"></div>
+                                    </div>
+                                    <span style="min-width: 40px; text-align: right; font-size: 12px;">{{ col_info.missing_percentage }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if col_info.get('unique_values') %}
+                                    {{ col_info.unique_values }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <!-- Step 2: Data Cleaning -->
+    {% if reports.cleaning.steps %}
     <div class="card step-card complete mb-4">
         <div class="card-header bg-light">
             <h5 class="mb-0">
@@ -300,65 +432,85 @@
             </h5>
         </div>
         <div class="card-body">
-            <p class="text-muted mb-3">Applied type-aware cleaning, handled missing values, fixed formatting issues</p>
+            <p class="text-muted mb-3">Applied type-aware cleaning, handled missing values, fixed formatting, removed duplicates, and capped outliers</p>
             
-            {% for step in reports.cleaning_report.steps %}
-            <div class="timeline-step">
-                <div class="timeline-marker">✓</div>
-                <div class="timeline-content">
-                    <h6><strong>{{ step.step }}</strong></h6>
+            {% for step in reports.cleaning.steps %}
+            <div class="timeline-item success">
+                <div style="flex: 1;">
+                    <h6 class="mb-2"><strong>✓ {{ step.step }}</strong></h6>
                     <p class="text-muted mb-2" style="font-size: 13px;">{{ step.description }}</p>
                     
-                    {% if step.get('details') %}
-                        <table class="table table-sm table-borderless">
-                            {% for detail in step.details %}
-                            <tr>
-                                <td style="font-size: 13px; padding: 3px 0;">
-                                    <strong>{{ detail.column }}:</strong>
-                                    <span class="badge bg-info">{{ detail.data_type | title }}</span>
-                                    {{ detail.missing_count }} missing value(s) → Filled with 
-                                    <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">
-                                        {% if detail.data_type == 'string' %}"unknown"{% else %}statistical value{% endif %}
-                                    </code>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </table>
-                    {% endif %}
-
-                    {% if step.get('duplicates_removed') %}
-                    <div class="info-box">
-                        <strong>Duplicates Removed:</strong> {{ step.duplicates_removed }} rows
+                    {% if step.step == 'Remove Duplicate Rows' and step.get('duplicates_removed') %}
+                    <div class="info-box" style="margin: 10px 0;">
+                        🗑️ <strong>Duplicate Rows Removed:</strong> {{ step.duplicates_removed }} rows
                     </div>
                     {% endif %}
 
-                    {% if step.get('details') and step.step == 'Cap Outliers (IQR Method)' %}
-                    <div class="warning-box">
-                        <strong>Outliers Capped (preserved rows):</strong>
-                        {% for outlier in step.details %}
-                        <div style="font-size: 13px; margin-top: 5px;">
-                            <strong>{{ outlier.column }}:</strong> {{ outlier.outliers_capped }} values capped 
-                            (bounds: {{ outlier.lower_bound }} to {{ outlier.upper_bound }})
-                        </div>
-                        {% endfor %}
+                    {% if step.step == 'Handle Missing Values' and step.get('details') %}
+                    <table class="table table-sm" style="margin: 10px 0; font-size: 13px;">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th>Column</th>
+                                <th>Type</th>
+                                <th>Missing Count</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detail in step.details %}
+                            <tr>
+                                <td><strong>{{ detail.column }}</strong></td>
+                                <td><span class="badge-type string">{{ detail.data_type | title }}</span></td>
+                                <td>{{ detail.missing_count }}</td>
+                                <td>
+                                    {% if detail.data_type == 'string' %}
+                                        Filled with <code>"unknown"</code>
+                                    {% elif detail.data_type == 'numeric' %}
+                                        Filled with median
+                                    {% else %}
+                                        Imputed
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+
+                    {% if step.step == 'Cap Outliers (IQR Method)' and step.get('details') %}
+                    <div class="warning-box" style="margin: 10px 0;">
+                        <strong>📈 Outliers Capped (preserved rows):</strong>
+                        <table class="table table-sm" style="margin: 10px 0; font-size: 13px; margin-bottom: 0;">
+                            <tr>
+                                <th>Column</th>
+                                <th>Count</th>
+                                <th>Bounds</th>
+                            </tr>
+                            {% for outlier in step.details %}
+                            <tr>
+                                <td><strong>{{ outlier.column }}</strong></td>
+                                <td>{{ outlier.outliers_capped }}</td>
+                                <td>[{{ outlier.lower_bound }} to {{ outlier.upper_bound }}]</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                    {% endif %}
+
+                    {% if step.step == 'Standardize Column Names' %}
+                    <div class="info-box" style="margin: 10px 0;">
+                        ✓ {{ step.columns_standardized }} columns standardized (lowercase, spaces → underscores)
                     </div>
                     {% endif %}
                 </div>
             </div>
             {% endfor %}
-
-            <div class="metric-box mt-3">
-                <strong>Cleaning Summary</strong>
-                <ul style="margin: 10px 0; padding-left: 20px;">
-                    <li>Original shape: {{ reports.cleaning_report.original_shape }}</li>
-                    <li>Final shape: {{ reports.cleaning_report.final_shape }}</li>
-                    <li>Rows removed: {{ reports.cleaning_report.rows_removed }}</li>
-                </ul>
-            </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Step 3: Preprocessing -->
+    {% if reports.preprocessing.steps %}
     <div class="card step-card complete mb-4">
         <div class="card-header bg-light">
             <h5 class="mb-0">
@@ -368,123 +520,185 @@
             </h5>
         </div>
         <div class="card-body">
-            <p class="text-muted mb-3">Encoded categoricals, normalized numerics, prepared for ML/AI</p>
+            <p class="text-muted mb-3">Applied categorical encoding, normalization, scaling, and skewness handling for ML readiness</p>
             
-            {% for step in reports.preprocessing_report.steps %}
-            <div class="metric-box">
-                <h6 class="mb-2"><strong>{{ step.step }}</strong></h6>
-                <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
-                    {% for key, value in step.items() %}
-                        {% if key != 'step' %}
-                        <li><strong>{{ key | replace('_', ' ') | title }}:</strong> {{ value }}</li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
+            {% for step in reports.preprocessing.steps %}
+            <div class="timeline-item success" style="margin: 15px 0;">
+                <div style="flex: 1;">
+                    <h6 class="mb-1"><strong>✓ {{ step.step }}</strong></h6>
+                    {% if step.get('columns_encoded') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Columns Encoded:</strong> {{ step.columns_encoded }}</p>
+                    {% endif %}
+                    {% if step.get('columns_transformed') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Columns Log-Transformed:</strong> {{ step.columns_transformed | join(', ') }}</p>
+                    {% endif %}
+                    {% if step.get('columns_normalized') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Columns Normalized (MinMax):</strong> {{ step.columns_normalized | length }} columns</p>
+                    {% endif %}
+                    {% if step.get('numeric_columns_processed') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Numeric Columns:</strong> {{ step.numeric_columns_processed }} | <strong>Categorical Columns:</strong> {{ step.categorical_columns_processed }}</p>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
         </div>
     </div>
+    {% endif %}
 
     <!-- Step 4: Transformation -->
+    {% if reports.transformation.steps %}
     <div class="card step-card complete mb-4">
         <div class="card-header bg-light">
             <h5 class="mb-0">
                 <span class="step-number">4</span>
-                <strong>Data Transformation & Feature Engineering</strong>
+                <strong>Feature Engineering & Transformation</strong>
                 <span class="badge bg-success ms-2">Complete</span>
             </h5>
         </div>
         <div class="card-body">
-            <p class="text-muted mb-3">Created derived features, aggregate metrics, and interaction features</p>
+            <p class="text-muted mb-3">Created new features through aggregation, binning, time extraction, and interactions</p>
             
-            <div class="row">
-                <div class="col-md-6">
-                    <h6><strong>Feature Creation Summary</strong></h6>
-                    <ul style="padding: 0; margin: 0;">
-                        <li class="metric-box">
-                            <strong>Original Columns:</strong> {{ reports.transformation_report.original_columns }}
-                        </li>
-                        <li class="metric-box">
-                            <strong>New Features Created:</strong> 
-                            <span class="badge bg-success">+{{ reports.transformation_report.total_features_created }}</span>
-                        </li>
-                        <li class="metric-box">
-                            <strong>Final Columns:</strong> {{ reports.transformation_report.final_columns }}
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h6><strong>New Features</strong></h6>
-                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
-                        {% for feature in reports.transformation_report.new_features %}
-                        <span class="badge bg-primary" style="margin: 3px; display: inline-block;">
-                            {{ feature }}
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <h6 class="mt-3"><strong>Transformation Steps</strong></h6>
-            {% for step in reports.transformation_report.steps %}
-            <div class="metric-box">
-                <strong>{{ step.step }}</strong>
-                <div style="font-size: 13px; color: #666; margin-top: 5px;">
-                    {% for key, value in step.items() %}
-                        {% if key != 'step' %}
-                        {{ key | replace('_', ' ') | title }}: <strong>{{ value }}</strong><br>
-                        {% endif %}
+            {% if reports.transformation.get('new_features') %}
+            <div class="info-box">
+                <strong>✨ New Features Created ({{ reports.transformation.new_features | length }}):</strong>
+                <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    {% for feature in reports.transformation.new_features %}
+                    <code style="background: #f0f0f0; padding: 5px 8px; border-radius: 3px; font-size: 12px;">{{ feature }}</code>
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
+
+            {% for step in reports.transformation.steps %}
+            <div class="timeline-item success" style="margin: 15px 0;">
+                <div style="flex: 1;">
+                    <h6 class="mb-1"><strong>✓ {{ step.step }}</strong></h6>
+                    {% if step.get('features_created') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Features Created:</strong> {{ step.features_created }}</p>
+                    {% endif %}
+                    {% if step.get('metrics_created') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Business Metrics:</strong> {{ step.metrics_created | join(', ') }}</p>
+                    {% endif %}
+                    {% if step.get('date_columns_processed') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Date Columns Processed:</strong> {{ step.date_columns_processed }} (extracted year, month, quarter)</p>
+                    {% endif %}
+                    {% if step.get('binned_columns') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Binned Columns:</strong> {{ step.binned_columns | join(', ') }}</p>
+                    {% endif %}
+                    {% if step.get('interactions_created') %}
+                        <p style="font-size: 13px; margin: 5px 0;"><strong>Interaction Features:</strong> {{ step.interactions_created }} created</p>
+                    {% endif %}
+                </div>
+            </div>
             {% endfor %}
+
+            <div class="success-box" style="margin-top: 15px;">
+                <strong>📊 Final Dataset:</strong> 
+                Original {{ reports.transformation.get('original_columns', 0) }} columns → 
+                <strong>{{ reports.transformation.get('final_columns', 0) }} columns</strong> 
+                (+{{ reports.transformation.get('total_features_created', 0) }} engineered features)
+            </div>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Final Dataset Preview -->
+    <!-- Cleaned Dataset Preview (exact cleaned values) -->
     <div class="card mb-4">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0"><i class="fas fa-table"></i> Final Processed Dataset (First 10 Rows)</h5>
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-broom"></i> <strong>Cleaned Dataset Preview (After Cleaning, Before Preprocessing)</strong>
+                <small class="text-muted ms-2">Rows: {{ cleaned_shape[0] }} / Columns: {{ cleaned_shape[1] }}</small>
+            </h5>
+            {% if cleaned_data %}
+            <div class="mt-2">
+                <a href="/download_cleaned" class="btn btn-sm btn-primary">
+                    <i class="fas fa-download"></i> Download Cleaned Dataset
+                </a>
+            </div>
+            {% endif %}
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover table-sm">
-                    <thead class="table-dark">
-                        <tr>
-                            {% for col in columns %}
-                            <th style="font-size: 12px;">{{ col }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in data %}
-                        <tr>
-                            {% for col in columns %}
-                            <td style="font-size: 12px;">{{ row[col] }}</td>
-                            {% endfor %}
-                        </tr>
+        <div class="card-body" style="overflow-x: auto; max-height: 350px; overflow-y: auto;">
+            {% if cleaned_data %}
+            <table class="table table-sm table-striped">
+                <thead style="background: #f8f9fa;">
+                    <tr>
+                        {% for col in cleaned_columns %}
+                        <th>{{ col }}</th>
                         {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="text-muted small mt-2">
-                <i class="fas fa-info-circle"></i> Dataset contains <strong>{{ dataset_shape[0] }}</strong> rows and 
-                <strong>{{ dataset_shape[1] }}</strong> columns | Showing first 10 rows
-            </div>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in cleaned_data %}
+                    <tr>
+                        {% for col in cleaned_columns %}
+                        <td style="font-size: 13px; max-width: 160px; overflow: hidden; text-overflow: ellipsis;">
+                            {% if row[col] is none %}
+                                <em style="color: #999;">null</em>
+                            {% else %}
+                                {{ row[col] | string | truncate(70) }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No cleaned dataset available yet.</p>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Call to Action -->
-    <div class="card border-success bg-light mb-4">
-        <div class="card-body text-center py-5">
-            <h4 class="mb-3"><i class="fas fa-sparkles"></i> Ready for AI Analysis!</h4>
-            <p class="text-muted mb-4">
-                Your data has been thoroughly validated, cleaned, preprocessed, and transformed. 
-                All missing values have been handled intelligently based on data type. 
-                It's now ready for AI-powered insights and analysis.
-            </p>
-            <a href="/chat" class="btn btn-success btn-lg">
-                <i class="fas fa-robot"></i> Start AI Chat & Query Your Data
+    <!-- Final Dataset Preview (transformed) -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-chart-line"></i> <strong>Final Dataset Preview (After Preprocessing + Transformation)</strong>
+                <small class="text-muted ms-2">Rows: {{ final_shape[0] }} / Columns: {{ final_shape[1] }}</small>
+            </h5>
+        </div>
+        <div class="card-body" style="overflow-x: auto; max-height: 350px; overflow-y: auto;">
+            {% if final_data %}
+            <table class="table table-sm table-striped">
+                <thead style="background: #f8f9fa;">
+                    <tr>
+                        {% for col in final_columns %}
+                        <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in final_data %}
+                    <tr>
+                        {% for col in final_columns %}
+                        <td style="font-size: 13px; max-width: 160px; overflow: hidden; text-overflow: ellipsis;">
+                            {% if row[col] is none %}
+                                <em style="color: #999;">null</em>
+                            {% else %}
+                                {{ row[col] | string | truncate(70) }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No final dataset available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <a href="/preview" class="btn btn-primary btn-lg w-100">
+                <i class="fas fa-table"></i> View Full Dataset
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="/chat" class="btn btn-success btn-lg w-100">
+                <i class="fas fa-robot"></i> Start AI Analysis Chat
             </a>
         </div>
     </div>

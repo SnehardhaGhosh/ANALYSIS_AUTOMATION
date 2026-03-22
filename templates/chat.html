@@ -1,19 +1,166 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+.chat-container {
+    display: flex;
+    height: 80vh;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 300px;
+    background: #f8f9fa;
+    border-right: 1px solid #ddd;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.sidebar h4 {
+    margin-top: 0;
+    color: #333;
+}
+
+.history-item {
+    padding: 10px;
+    margin: 5px 0;
+    background: white;
+    border-radius: 5px;
+    border: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.history-item:hover {
+    background: #e9ecef;
+}
+
+.history-item .query {
+    font-weight: bold;
+    font-size: 14px;
+    color: #007bff;
+}
+
+.history-item .timestamp {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.main-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-box {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #fff;
+}
+
+.input-area {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    background: #f8f9fa;
+    display: flex;
+    gap: 10px;
+}
+
+.input-area input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.user-message {
+    background: #007bff;
+    color: white;
+    text-align: right;
+}
+
+.ai-message {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+}
+
+.loading {
+    font-style: italic;
+    color: #666;
+}
+</style>
+
 <h2>AI Data Chat</h2>
-<p>Ask questions about your uploaded data</p>
+<p>Ask questions about your cleaned dataset</p>
 
 <div class="chat-container">
-    <div class="chat-box" id="chat-box"></div>
+    <div class="sidebar">
+        <h4>Chat History</h4>
+        <div id="history-list">
+            <p>Loading history...</p>
+        </div>
+    </div>
     
-    <div class="input-area">
-        <input type="text" id="query" placeholder="e.g., What is the total profit? or Show me correlations..." required>
-        <button onclick="sendQuery()" class="btn-primary">Ask AI</button>
+    <div class="main-chat">
+        <div class="chat-box" id="chat-box">
+            <div class="message ai-message">
+                <strong>AI:</strong> Hello! I'm ready to analyze your cleaned dataset. What would you like to know?
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="query" placeholder="e.g., What is homing? or Show me patterns..." required>
+            <button onclick="sendQuery()" class="btn btn-primary">Ask AI</button>
+        </div>
     </div>
 </div>
 
 <script>
+// Load chat history on page load
+async function loadHistory() {
+    try {
+        let response = await fetch("/api/chat-history");
+        let data = await response.json();
+        
+        let historyList = document.getElementById("history-list");
+        if (data.history && data.history.length > 0) {
+            historyList.innerHTML = data.history.map(item => `
+                <div class="history-item" onclick="loadChat('${item.query}', '${item.response}')">
+                    <div class="query">${item.query.substring(0, 50)}${item.query.length > 50 ? '...' : ''}</div>
+                    <div class="timestamp">${new Date(item.timestamp).toLocaleString()}</div>
+                </div>
+            `).join('');
+        } else {
+            historyList.innerHTML = '<p>No chat history yet.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading history:', error);
+        document.getElementById("history-list").innerHTML = '<p>Error loading history.</p>';
+    }
+}
+
+function loadChat(query, response) {
+    let chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML = `
+        <div class="message user-message">
+            <strong>You:</strong> ${query}
+        </div>
+        <div class="message ai-message">
+            <strong>AI:</strong> ${response}
+        </div>
+    `;
+}
+
 async function sendQuery() {
     let queryInput = document.getElementById("query");
     let query = queryInput.value.trim();
@@ -30,10 +177,11 @@ async function sendQuery() {
     // Show loading
     let loadingDiv = document.createElement('div');
     loadingDiv.className = 'message ai-message loading';
-    loadingDiv.innerHTML = '<strong>AI:</strong> Analyzing your data...';
+    loadingDiv.innerHTML = '<strong>AI:</strong> Analyzing your cleaned dataset...';
     chatBox.appendChild(loadingDiv);
     
     chatBox.scrollTop = chatBox.scrollHeight;
+    queryInput.value = '';
     
     try {
         let response = await fetch("/ask", {
@@ -50,36 +198,34 @@ async function sendQuery() {
         chatBox.removeChild(loadingDiv);
         
         if (data.error) {
-            chatBox.innerHTML += `<div class="message ai-message error">
-                <strong>AI:</strong> ${data.error}
+            chatBox.innerHTML += `<div class="message ai-message">
+                <strong>AI:</strong> Error: ${data.error}
             </div>`;
         } else {
-            // Rule-based answer
-            if (data.rule_based_answer && data.rule_based_answer !== "Query not recognized...") {
-                chatBox.innerHTML += `<div class="message ai-message rule-based">
-                    <strong>Quick Analysis:</strong> ${data.rule_based_answer}
-                </div>`;
-            }
-            
-            // AI interpretation
             chatBox.innerHTML += `<div class="message ai-message">
-                <strong>AI Analysis:</strong> ${data.ai_interpretation}
+                <strong>AI:</strong> ${data.response}
             </div>`;
         }
+        
+        // Reload history
+        loadHistory();
+        
     } catch (error) {
         chatBox.removeChild(loadingDiv);
-        chatBox.innerHTML += `<div class="message ai-message error">
-            <strong>AI:</strong> Sorry, there was an error processing your request.
+        chatBox.innerHTML += `<div class="message ai-message">
+            <strong>AI:</strong> Network error. Please try again.
         </div>`;
     }
     
-    queryInput.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Allow Enter key to send
-document.getElementById("query").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
+// Load history on page load
+loadHistory();
+
+// Enter key support
+document.getElementById("query").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
         sendQuery();
     }
 });

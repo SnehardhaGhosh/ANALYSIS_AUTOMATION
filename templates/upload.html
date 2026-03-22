@@ -13,14 +13,34 @@
 
                     {% if request.args.get('error') %}
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
                         {% if request.args.get('error') == 'no_file' %}
-                        <i class="fas fa-exclamation-circle"></i> Please select a file to upload.
+                        <strong>No File Selected</strong> - Please select a file to upload.
                         {% elif request.args.get('error') == 'unsupported' %}
-                        <i class="fas fa-exclamation-circle"></i> Unsupported file type. Please upload CSV, Excel, or JSON files.
+                        <strong>Unsupported Format</strong> - Please upload CSV, Excel (.xlsx/.xls), or JSON files only.
+                        {% elif request.args.get('error') == 'size' %}
+                        <strong>File Too Large</strong> - Maximum file size is 50MB. Your file exceeds this limit.
+                        {% elif request.args.get('error') == 'empty' %}
+                        <strong>Empty File</strong> - The file you uploaded is empty. Please check the file and try again.
+                        {% elif request.args.get('error') == 'corrupt' %}
+                        <strong>Corrupted File</strong> - Could not read the file. It may be corrupted or have an invalid format. Try:
+                        <br>• Opening it in Excel/Calc and resaving as CSV
+                        <br>• Checking for special characters in the filename
+                        <br>• Ensuring the file isn't password-protected
+                        {% elif request.args.get('error') == 'validate' %}
+                        <strong>Validation Failed</strong> - Could not validate the data structure. The file may have incompatible data types.
+                        {% elif request.args.get('error') == 'clean' %}
+                        <strong>Data Cleaning Failed</strong> - Error during data cleaning process. This is usually due to incompatible data types.
+                        {% elif request.args.get('error') == 'preprocess' %}
+                        <strong>Preprocessing Failed</strong> - Error during data preprocessing. Check that your data contains recognizable patterns.
+                        {% elif request.args.get('error') == 'transform' %}
+                        <strong>Transformation Failed</strong> - Error during feature engineering. The dataset may be too small or have incompatible columns.
+                        {% elif request.args.get('error') == 'save' %}
+                        <strong>Save Failed</strong> - Could not save processed data. Check available disk space.
                         {% elif request.args.get('error') == 'process' %}
-                        <i class="fas fa-exclamation-circle"></i> Error processing file. Please try again.
+                        <strong>Processing Error</strong> - An unexpected error occurred. Please check the file format and try again.
                         {% else %}
-                        <i class="fas fa-exclamation-circle"></i> An error occurred.
+                        <strong>Error</strong> - An error occurred during upload. Please try again.
                         {% endif %}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -38,7 +58,7 @@
                                        class="form-control"
                                        id="fileInput">
                                 <small class="text-muted d-block mt-2">
-                                    Maximum file size: 16MB
+                                    Maximum file size: 50MB
                                 </small>
                             </div>
                         </div>

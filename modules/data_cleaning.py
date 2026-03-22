@@ -62,7 +62,7 @@ def clean_data(df):
         
         elif col_dtype == 'datetime':
             # For datetime: forward fill then backward fill
-            df[col] = df[col].fillna(method='ffill').fillna(method='bfill')
+            df[col] = df[col].ffill().bfill()
         
         elif col_dtype == 'boolean':
             # For boolean: use mode (most common value)

@@ -12,3 +12,4 @@ openpyxl
 gunicorn
 flask-cors
 flask-limiter
+Flask-Session

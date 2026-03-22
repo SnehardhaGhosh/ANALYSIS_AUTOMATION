@@ -11,6 +11,9 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # 🔥 GROQ (Recommended)
 def ask_groq(prompt):
+    if not GROQ_API_KEY:
+        raise Exception("GROQ_API_KEY not set in environment variables")
+    
     url = "https://api.groq.com/openai/v1/chat/completions"
 
     headers = {
@@ -26,7 +29,15 @@ def ask_groq(prompt):
     }
 
     response = requests.post(url, headers=headers, json=data)
-    return response.json()['choices'][0]['message']['content']
+    
+    if response.status_code != 200:
+        raise Exception(f"Groq API error ({response.status_code}): {response.text}")
+    
+    result = response.json()
+    if 'choices' not in result or not result['choices']:
+        raise Exception(f"Unexpected Groq API response: {result}")
+    
+    return result['choices'][0]['message']['content']
 
 
 # 🤖 HUGGING FACE (Inference Providers, router endpoint)
@@ -59,8 +70,14 @@ def ask_huggingface(prompt):
 
 # 🌟 GEMINI (UPDATED VERSION)
 def ask_gemini(prompt):
-    import google.generativeai as genai
-
+    try:
+        import google.generativeai as genai
+    except ImportError as e:
+        raise Exception(f"Gemini dependencies not installed: {str(e)}")
+    
+    if not GEMINI_API_KEY:
+        raise Exception("GEMINI_API_KEY not set")
+    
     genai.configure(api_key=GEMINI_API_KEY)
 
     # Using gemini-2.5-flash for faster and better responses
