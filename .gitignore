@@ -29,7 +29,10 @@ cleaned_data/
 # 🧪 Test / temp files
 tmp_*.py
 test_*.py
+quick_test.py
+validate_production.py
 *.tmp
+flask_session/
 
 # 📓 Jupyter Notebook checkpoints
 .ipynb_checkpoints/

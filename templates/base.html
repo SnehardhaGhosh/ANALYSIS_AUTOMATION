@@ -9,11 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+<div id="canvas-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <a class="navbar-brand" href="/dashboard">
-            <i class="fas fa-chart-line"></i> AI Data Analyst
+            <i class="fas fa-database text-warning me-2"></i> AI DATA ANALYST
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -21,29 +22,35 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                    <a class="nav-link" href="/dashboard"><i class="fas fa-th-large me-2"></i>Dashboard</a>
                 </li>
                 {% if session.get('dataset') %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/preview"><i class="fas fa-eye"></i> Preview</a>
+                    <a class="nav-link" href="/preview"><i class="fas fa-table me-2"></i>Data Preview</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/chat"><i class="fas fa-robot"></i> AI Chat</a>
+                    <a class="nav-link" href="/chat"><i class="fas fa-comment-dots me-2"></i>AI Assistant</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/visualize"><i class="fas fa-chart-pie me-2"></i>Analytics Hub</a>
                 </li>
                 {% endif %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a class="nav-link" href="/logout"><i class="fas fa-power-off me-2"></i>Logout</a>
                 </li>
             </ul>
         </div>
     </div>
 </nav>
 
-<div class="container mt-4">
+<div class="container mt-4 animate-fade-in-up">
     {% block content %}{% endblock %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+<script src="/static/js/particles3d.js"></script>
 <script src="/static/js/main.js"></script>
 
 </body>

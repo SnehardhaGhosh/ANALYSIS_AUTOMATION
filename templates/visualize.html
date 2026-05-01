@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Agentic Intelligence Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 stagger-entrance stagger-1">
+    <div>
+        <h2 class="display-6" style="font-weight: 800; letter-spacing: -2px;"><i class="fas fa-microchip text-primary me-2"></i> Cognitive Analytics Hub</h2>
+        <p class="text-muted">Smart Visualization Hub: Now with automated business insights for every visual.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button id="launchAgentBtn" class="btn btn-primary btn-lg rounded-pill shadow-lg px-4 pulse-button">
+            <i class="fas fa-robot me-2"></i> Launch Executive Agent
+        </button>
+    </div>
+</div>
+
+<!-- Executive Summary Panel -->
+<div id="agentSummaryBox" class="card border-0 shadow-lg mb-5 rounded-4 overflow-hidden d-none stagger-entrance">
+    <div class="card-header bg-dark text-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-gradient-google"><i class="fas fa-file-contract me-2"></i> Executive Intelligence Briefing</h5>
+        <span class="badge bg-primary rounded-pill">Autonomous Analysis</span>
+    </div>
+    <div class="card-body p-4 bg-white">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h4 id="agentNarrative" class="mb-3 fw-bold text-dark" style="line-height: 1.4;"></h4>
+                <div id="agentRecommendation" class="alert alert-primary border-0 rounded-3 p-3 small bg-light text-primary"></div>
+            </div>
+            <div class="col-md-4 border-start d-flex justify-content-center">
+                <div class="text-center p-3 rounded-4 bg-light w-100">
+                    <span class="small text-uppercase fw-bold text-muted d-block mb-1">Primary Growth Factor</span>
+                    <h3 id="topDriverName" class="text-primary fw-bold mb-0"></h3>
+                    <span id="driverImpact" class="badge bg-primary rounded-pill mt-2"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sidebar Command Center -->
+    <div class="col-md-3 stagger-entrance stagger-2">
+        <div class="sidebar-panel h-100 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.55); backdrop-filter: blur(45px);">
+            <h5 class="mb-4" style="font-weight: 700;"><i class="fas fa-sliders-h text-primary"></i> Hub Controls</h5>
+            
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-uppercase text-muted">Primary Metric (Y)</label>
+                <select class="form-select border-0 shadow-sm rounded-3 py-2" id="global_y">
+                    {% for col in numeric_cols %}
+                    <option value="{{ col }}" {% if loop.index == 1 %}selected{% endif %}>{{ col }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-uppercase text-muted">Dimension (X)</label>
+                <select class="form-select border-0 shadow-sm rounded-3 py-2" id="global_x">
+                    {% for col in columns %}
+                    <option value="{{ col }}" {% if loop.index == 2 %}selected{% endif %}>{{ col }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <hr class="my-4 opacity-10">
+
+            <h6 class="mb-3 fw-bold text-uppercase small">Advanced ML Toolkit</h6>
+            <div class="list-group list-group-flush rounded-3 shadow-sm overflow-hidden border-0">
+                <button type="button" class="list-group-item list-group-item-action py-2 ml-action border-0" data-method="clustering">
+                    <i class="fas fa-layer-group text-primary me-2"></i> Segmentation
+                </button>
+                <button type="button" class="list-group-item list-group-item-action py-2 ml-action border-0" data-method="anomalies">
+                    <i class="fas fa-search-minus text-danger me-2"></i> Outlier Scan
+                </button>
+                <button type="button" class="list-group-item list-group-item-action py-2 ml-action border-0" data-method="risk_score">
+                    <i class="fas fa-tachometer-alt text-warning me-2"></i> Risk Scoring
+                </button>
+                <button type="button" class="list-group-item list-group-item-action py-2 ml-action border-0" id="predictBtn">
+                    <i class="fas fa-magic text-info me-2"></i> Predictive Trend
+                </button>
+            </div>
+            
+            <div id="mlInsightBox" class="mt-4 p-3 rounded-4 bg-aura-light shadow-sm d-none">
+                <h6 class="fw-bold mb-2 small"><i class="fas fa-robot text-success"></i> Toolkit Insight</h6>
+                <p id="mlInsightText" class="small text-muted mb-0" style="font-size: 0.8rem;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multi-View Dashboard Grid -->
+    <div class="col-md-9 stagger-entrance stagger-3">
+        <div class="row g-4">
+            <!-- Slot 1: Bar Chart -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100 chart-card overflow-hidden">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small text-muted text-uppercase" id="title1">Comparison View</span>
+                        <div class="d-flex gap-3 align-items-center">
+                            <i class="fas fa-sync-alt text-light cursor-pointer refresh-icon" data-slot="1"></i>
+                            <i id="icon1" class="fas fa-chart-bar text-primary"></i>
+                        </div>
+                    </div>
+                    <div class="card-body p-4" style="height: 280px;">
+                        <canvas id="chart1"></canvas>
+                    </div>
+                    <div class="card-footer bg-light border-0 py-3 px-4">
+                        <p class="mb-0 small text-dark fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i> <span id="insight1">Analyzing data...</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slot 2: Line Chart -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100 chart-card overflow-hidden">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small text-muted text-uppercase" id="title2">Trend Analysis</span>
+                        <div class="d-flex gap-3 align-items-center">
+                            <i class="fas fa-sync-alt text-light cursor-pointer refresh-icon" data-slot="2"></i>
+                            <i id="icon2" class="fas fa-chart-line text-info"></i>
+                        </div>
+                    </div>
+                    <div class="card-body p-4" style="height: 280px;">
+                        <canvas id="chart2"></canvas>
+                    </div>
+                    <div class="card-footer bg-light border-0 py-3 px-4">
+                        <p class="mb-0 small text-dark fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i> <span id="insight2">Calculating trends...</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slot 3: Polar Area -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100 chart-card overflow-hidden">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small text-muted text-uppercase" id="title3">Radial Mix Profile</span>
+                        <div class="d-flex gap-3 align-items-center">
+                            <i class="fas fa-sync-alt text-light cursor-pointer refresh-icon" data-slot="3"></i>
+                            <i id="icon3" class="fas fa-bullseye text-warning"></i>
+                        </div>
+                    </div>
+                    <div class="card-body p-4" style="height: 280px;">
+                        <canvas id="chart3"></canvas>
+                    </div>
+                    <div class="card-footer bg-light border-0 py-3 px-4">
+                        <p class="mb-0 small text-dark fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i> <span id="insight3">Profiling mix...</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slot 4: ML Pattern View -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100 chart-card bg-aura-light overflow-hidden">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small text-muted text-uppercase" id="title4">AI Pattern Discovery</span>
+                        <div class="badge bg-success text-white rounded-pill px-2 small">Agent Engine</div>
+                    </div>
+                    <div class="card-body p-4" style="height: 280px;">
+                        <div id="mlVisualPlaceholder" class="d-flex align-items-center justify-content-center h-100 text-muted small text-center p-4">
+                            <div>
+                                <i class="fas fa-robot fa-3x mb-3 opacity-25"></i><br>
+                                Running ML models to discover deep patterns
+                            </div>
+                        </div>
+                        <canvas id="chart4" class="d-none"></canvas>
+                    </div>
+                    <div class="card-footer bg-success-soft border-0 py-3 px-4">
+                        <p class="mb-0 small text-success fw-bold"><i class="fas fa-brain me-2"></i> <span id="insight4">Waiting for ML scan...</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const charts = {};
+    const globalX = document.getElementById('global_x');
+    const globalY = document.getElementById('global_y');
+    const launchAgentBtn = document.getElementById('launchAgentBtn');
+    const agentSummaryBox = document.getElementById('agentSummaryBox');
+
+    const palette = [
+        'rgba(66, 133, 244, 0.75)',  // Blue
+        'rgba(52, 168, 83, 0.75)',   // Green
+        'rgba(251, 188, 5, 0.75)',   // Yellow
+        'rgba(234, 67, 53, 0.75)',   // Red
+        'rgba(161, 66, 244, 0.75)',  // Purple
+        'rgba(66, 244, 222, 0.75)'   // Cyan
+    ];
+
+    async function initDashboard() {
+        const x = globalX.value;
+        const y = globalY.value;
+        if(!x || !y) return;
+        loadChart('chart1', 'bar', x, y, 1);
+        loadChart('chart2', 'line', x, y, 2, 'moving_average');
+        loadChart('chart3', 'polarArea', x, y, 3);
+    }
+
+    async function loadChart(elementId, type, x, y, slotNum, ml = 'none') {
+        try {
+            const response = await fetch('/api/generate-chart', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ x_col: x, y_col: y, chart_type: type, ml_algorithm: ml })
+            });
+            const data = await response.json();
+            
+            // Update Insight
+            document.getElementById('insight' + slotNum).textContent = data.narrative;
+            
+            renderChart(elementId, type, data);
+        } catch (e) { console.error(e); }
+    }
+
+    function renderChart(id, type, chartData) {
+        if (charts[id]) charts[id].destroy();
+        const ctx = document.getElementById(id).getContext('2d');
+        
+        if (type === 'polarArea') {
+            chartData.datasets[0].backgroundColor = palette;
+            chartData.datasets[0].borderColor = '#fff';
+            chartData.datasets[0].borderWidth = 3;
+        } else {
+            chartData.datasets[0].backgroundColor = palette[0];
+            chartData.datasets[0].borderColor = palette[0].replace('0.75', '1');
+            chartData.datasets[0].borderWidth = 2;
+            chartData.datasets[0].borderRadius = 15;
+            if (chartData.datasets[1]) {
+                chartData.datasets[1].borderColor = palette[3].replace('0.75', '1');
+                chartData.datasets[1].borderWidth = 3;
+                chartData.datasets[1].borderDash = [8, 8];
+                chartData.datasets[1].pointRadius = 0;
+            }
+        }
+
+        charts[id] = new Chart(ctx, {
+            type: type,
+            data: chartData,
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        display: (type === 'polarArea' || chartData.datasets.length > 1),
+                        position: 'bottom',
+                        labels: { boxWidth: 10, padding: 10, font: { weight: '600', size: 9 } }
+                    }
+                },
+                scales: (type === 'bar' || type === 'line') ? {
+                    y: { grid: { color: 'rgba(0,0,0,0.02)' }, border: { display: false }, ticks: { font: { size: 9 } } },
+                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } }
+                } : (type === 'polarArea') ? {
+                    r: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { display: false } }
+                } : {}
+            }
+        });
+    }
+
+    function renderMLChart(id, mlData) {
+        if (charts[id]) charts[id].destroy();
+        const ctx = document.getElementById(id).getContext('2d');
+        let datasets = [];
+
+        if (mlData.type === 'clustering') {
+            const clusters = [...new Set(mlData.data.map(d => d.cluster))];
+            datasets = clusters.map(c => ({
+                label: `Profile ${c + 1}`,
+                data: mlData.data.filter(d => d.cluster === c).map(d => ({ x: d.x, y: d.y })),
+                backgroundColor: palette[c % palette.length],
+                pointRadius: 6, hoverRadius: 10, borderWidth: 2, borderColor: '#fff'
+            }));
+        } else if (mlData.type === 'anomalies') {
+            datasets = [
+                {
+                    label: 'Normal Patterns',
+                    data: mlData.data.filter(d => !d.is_anomaly).map(d => ({ x: d.x, y: d.y })),
+                    backgroundColor: 'rgba(200, 200, 200, 0.4)',
+                    pointRadius: 4, hoverRadius: 6
+                },
+                {
+                    label: 'Anomalies Detected',
+                    data: mlData.data.filter(d => d.is_anomaly).map(d => ({ x: d.x, y: d.y })),
+                    backgroundColor: 'rgba(234, 67, 53, 0.9)',
+                    pointRadius: 8, hoverRadius: 12, borderWidth: 2, borderColor: '#fff'
+                }
+            ];
+        }
+
+        charts[id] = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                },
+                scales: {
+                    x: { type: 'linear', title: { display: true, text: mlData.columns[0] } },
+                    y: { title: { display: true, text: mlData.columns[1] } }
+                }
+            }
+        });
+    }
+
+    // Agent Analysis Handler
+    launchAgentBtn.addEventListener('click', async function() {
+        this.disabled = true;
+        this.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div> AI is Analyzing...';
+        try {
+            const response = await fetch('/api/agentic-analysis');
+            const result = await response.json();
+            agentSummaryBox.classList.remove('d-none');
+            document.getElementById('agentNarrative').textContent = result.executive_summary;
+            document.getElementById('agentRecommendation').innerHTML = `<strong>AI Strategy:</strong> ${result.recommendation}`;
+            document.getElementById('topDriverName').textContent = result.feature_importance.top_driver;
+            document.getElementById('driverImpact').textContent = `${result.feature_importance.impact_score}% Impact`;
+            document.querySelector('.ml-action[data-method="clustering"]').click();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (e) { alert("Agent Error"); } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-robot me-2"></i> Launch Executive Agent';
+        }
+    });
+
+    // Toolkit Actions
+    document.querySelectorAll('.ml-action').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const method = this.dataset.method;
+            const x = globalX.value;
+            const y = globalY.value;
+            const placeholder = document.getElementById('mlVisualPlaceholder');
+            const canvas = document.getElementById('chart4');
+            const insight4 = document.getElementById('insight4');
+            placeholder.innerHTML = '<div class="spinner-border text-primary spinner-border-sm"></div> Analyzing patterns...';
+            try {
+                const response = await fetch('/api/ml-insights', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ method: method, x_col: x, y_col: y })
+                });
+                const result = await response.json();
+                insight4.textContent = result.explanation;
+                
+                if (result.data) {
+                    placeholder.classList.add('d-none');
+                    canvas.classList.remove('d-none');
+                    renderMLChart('chart4', result);
+                } else {
+                    placeholder.classList.remove('d-none');
+                    canvas.classList.add('d-none');
+                    placeholder.innerHTML = `<div class="text-center bounce-in">
+                        <i class="fas fa-${method==='risk_score'?'tachometer-alt':'search-minus'} text-danger fa-3x mb-3"></i><br>
+                        <h2 class="fw-bold text-danger mb-0">${result.count}</h2>
+                        <span class="text-muted small">${method==='risk_score'?'High Risk Points':'Anomalies Detected'}</span>
+                    </div>`;
+                }
+            } catch (e) { placeholder.textContent = "ML Error"; }
+        });
+    });
+
+    // Prediction Button
+    document.getElementById('predictBtn').addEventListener('click', async function() {
+        const y = globalY.value;
+        const placeholder = document.getElementById('mlVisualPlaceholder');
+        const canvas = document.getElementById('chart4');
+        const insight4 = document.getElementById('insight4');
+        placeholder.innerHTML = '<div class="spinner-border text-info spinner-border-sm"></div> Predicting future...';
+        try {
+            const response = await fetch('/api/ml-advanced', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ y_col: y })
+            });
+            const result = await response.json();
+            insight4.textContent = result.explanation;
+            placeholder.classList.remove('d-none');
+            canvas.classList.add('d-none');
+            placeholder.innerHTML = `<div class="text-center bounce-in">
+                <i class="fas fa-chart-line text-info fa-3x mb-3"></i><br>
+                <div class="d-flex gap-2 justify-content-center">
+                    ${result.predictions.map(p => `<span class="badge bg-info">${Math.round(p)}</span>`).join('')}
+                </div>
+                <span class="text-muted small d-block mt-2">Future prediction for ${result.metric}</span>
+            </div>`;
+        } catch (e) { placeholder.textContent = "Prediction Error"; }
+    });
+
+    // Refresh Handlers
+    document.querySelectorAll('.refresh-icon').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const slot = this.dataset.slot;
+            const x = globalX.value;
+            const y = globalY.value;
+            this.classList.add('fa-spin');
+            setTimeout(() => this.classList.remove('fa-spin'), 1000);
+            
+            if (slot == 1) loadChart('chart1', 'bar', x, y, 1);
+            if (slot == 2) loadChart('chart2', 'line', x, y, 2, 'moving_average');
+            if (slot == 3) loadChart('chart3', 'polarArea', x, y, 3);
+        });
+    });
+
+    globalX.addEventListener('change', initDashboard);
+    globalY.addEventListener('change', initDashboard);
+    initDashboard();
+});
+</script>
+
+<style>
+.chart-card { transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); background: #fff; border-radius: 40px !important; border: 1px solid rgba(0,0,0,0.05) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.05) !important; }
+.chart-card:hover { transform: translateY(-12px); box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; }
+.card-footer { background: rgba(0,0,0,0.02) !important; border-top: 1px solid rgba(0,0,0,0.05) !important; }
+.bg-success-soft { background: rgba(52, 168, 83, 0.05) !important; }
+.sidebar-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(45px); border: 1px solid rgba(0,0,0,0.05); }
+.text-gradient-google { background: linear-gradient(135deg, #4285F4 0%, #34A853 50%, #FBBC05 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.refresh-icon { transition: all 0.3s ease; color: #ccc !important; }
+.refresh-icon:hover { color: #4285F4 !important; transform: rotate(180deg) scale(1.2); }
+.pulse-button { animation: pulse 3s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.6); } 70% { box-shadow: 0 0 0 25px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
+.bounce-in { animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes bounceIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+</style>
+
+{% endblock %}

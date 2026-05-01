@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import re
 import logging
+from modules.data_cleaning import get_cached_type
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +58,9 @@ def _validate_data_internal(df):
             col_data = df[col]
             col_analysis = {}
             
-            # 1. Data Type Detection
+            # 1. Data Type Detection (use cached type to avoid redundant calls)
             try:
-                inferred_dtype = infer_column_type(col_data)
+                inferred_dtype = get_cached_type(col, col_data)
             except Exception as type_err:
                 logger.warning(f"Could not infer type for column {col}: {type_err}")
                 inferred_dtype = 'unknown'
@@ -87,24 +88,33 @@ def _validate_data_internal(df):
             # 3. Data Type Specific Analysis
             if inferred_dtype == 'numeric':
                 try:
-                    valid_numeric = col_data.dropna()
-                    col_analysis['statistics'] = {
-                        'min': float(valid_numeric.min()) if len(valid_numeric) > 0 else None,
-                        'max': float(valid_numeric.max()) if len(valid_numeric) > 0 else None,
-                        'mean': float(valid_numeric.mean()) if len(valid_numeric) > 0 else None,
-                        'median': float(valid_numeric.median()) if len(valid_numeric) > 0 else None,
-                        'std_dev': float(valid_numeric.std()) if len(valid_numeric) > 0 else None
-                    }
+                    # Coerce to numeric, handling mixed types
+                    valid_numeric = pd.to_numeric(col_data, errors='coerce')
+                    valid_numeric = valid_numeric.dropna()
                     
-                    # Check for outliers using IQR
                     if len(valid_numeric) > 0:
+                        col_analysis['statistics'] = {
+                            'min': round(float(valid_numeric.min()), 2),
+                            'max': round(float(valid_numeric.max()), 2),
+                            'mean': round(float(valid_numeric.mean()), 2),
+                            'median': round(float(valid_numeric.median()), 2),
+                            'std_dev': round(float(valid_numeric.std()), 2)
+                        }
+                        
+                        # Check for outliers using IQR
                         Q1 = valid_numeric.quantile(0.25)
                         Q3 = valid_numeric.quantile(0.75)
                         IQR = Q3 - Q1
-                        outlier_count = ((valid_numeric < Q1 - 1.5 * IQR) | (valid_numeric > Q3 + 1.5 * IQR)).sum()
-                        col_analysis['outlier_count'] = int(outlier_count)
-                        col_analysis['outlier_percentage'] = round(outlier_count / len(valid_numeric) * 100, 2)
+                        
+                        if IQR > 0:  # Only check outliers if there's variation
+                            outlier_count = ((valid_numeric < Q1 - 1.5 * IQR) | (valid_numeric > Q3 + 1.5 * IQR)).sum()
+                            col_analysis['outlier_count'] = int(outlier_count)
+                            col_analysis['outlier_percentage'] = round(outlier_count / len(valid_numeric) * 100, 2)
+                        else:
+                            col_analysis['outlier_count'] = 0
+                            col_analysis['outlier_percentage'] = 0
                     else:
+                        col_analysis['statistics'] = None
                         col_analysis['outlier_count'] = 0
                         col_analysis['outlier_percentage'] = 0
                 except Exception as num_err:
@@ -115,10 +125,17 @@ def _validate_data_internal(df):
             
             elif inferred_dtype == 'datetime':
                 try:
-                    col_analysis['date_range'] = {
-                        'min': str(col_data.min()),
-                        'max': str(col_data.max())
-                    }
+                    # Try to coerce to datetime, handling mixed types
+                    datetime_col = pd.to_datetime(col_data, errors='coerce')
+                    valid_datetime = datetime_col.dropna()
+                    
+                    if len(valid_datetime) > 0:
+                        col_analysis['date_range'] = {
+                            'min': valid_datetime.min().strftime('%Y-%m-%d'),
+                            'max': valid_datetime.max().strftime('%Y-%m-%d')
+                        }
+                    else:
+                        col_analysis['date_range'] = {}
                 except Exception as dt_err:
                     logger.warning(f"Error analyzing datetime column {col}: {dt_err}")
                     col_analysis['date_range'] = {}
@@ -224,37 +241,45 @@ def infer_column_type(col):
     """
     Intelligently infer column data type
     Returns: 'numeric', 'string', 'datetime', 'boolean', 'mixed'
+    Handles any data type including dict, list, array, regex, int, float, str
     """
-    col_clean = col.dropna()
-    
-    if len(col_clean) == 0:
-        return 'unknown'
-    
-    # Check for boolean
-    if col_clean.dtype == bool or set(col_clean.unique()).issubset({True, False, 0, 1}):
-        return 'boolean'
-    
-    # Check for datetime
-    if col_clean.dtype == 'datetime64[ns]':
-        return 'datetime'
-    
-    # Try to detect numeric
     try:
-        pd.to_numeric(col_clean, errors='coerce')
-        numeric_count = pd.to_numeric(col_clean, errors='coerce').notna().sum()
-        if numeric_count / len(col_clean) > 0.8:  # 80% are numeric
-            return 'numeric'
+        col_clean = col.dropna()
+        
+        if len(col_clean) == 0:
+            return 'unknown'
+        
+        # Check for boolean
+        if col_clean.dtype == bool or set(col_clean.unique()).issubset({True, False, 0, 1}):
+            return 'boolean'
+        
+        # Check for datetime
+        if col_clean.dtype == 'datetime64[ns]':
+            return 'datetime'
+        
+        # Try to detect numeric (coerce any type to numeric)
+        try:
+            numeric_converted = pd.to_numeric(col_clean, errors='coerce')
+            numeric_count = numeric_converted.notna().sum()
+            if numeric_count / len(col_clean) > 0.8:  # 80% are numeric
+                return 'numeric'
+        except:
+            pass
+        
+        # Check for datetime strings
+        try:
+            sample = col_clean.astype(str).iloc[:min(10, len(col_clean))]
+            date_pattern = r'^\d{4}-\d{2}-\d{2}|^\d{2}/\d{2}/\d{4}|^\d{1,2}-\w+-\d{2,4}'
+            if sample.str.match(date_pattern).any():
+                return 'datetime'
+        except:
+            pass
+        
+        # Default to string (handles all other types: dict, list, regex, etc.)
+        return 'string'
     except:
-        pass
-    
-    # Check for datetime strings
-    sample = col_clean.astype(str).iloc[:10]
-    date_pattern = r'^\d{4}-\d{2}-\d{2}|^\d{2}/\d{2}/\d{4}|^\d{1,2}-\w+-\d{2,4}'
-    if sample.str.match(date_pattern).any():
-        return 'datetime'
-    
-    # Default to string
-    return 'string'
+        # Fallback for any unexpected type handling
+        return 'string'
 
 
 def detect_pattern_issues(col, dtype, col_name):

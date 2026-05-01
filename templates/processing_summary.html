@@ -265,6 +265,24 @@
         </div>
     </div>
 
+    <!-- Data Sampling Information (if applicable) -->
+    {% if reports.summary.sampling_info and reports.summary.sampling_info.sampling_type != 'none' and reports.summary.sampling_info.sampling_type != 'all' %}
+    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+        <i class="fas fa-flask-vial"></i>
+        <strong>Data Sampling Applied:</strong> This analysis was performed on a <strong>{{ reports.summary.sampling_info.sampling_percent }}%</strong> sample 
+        of your dataset (<strong>{{ reports.summary.sampling_info.sampled_rows | int }}</strong> of <strong>{{ reports.summary.sampling_info.original_rows | int }}</strong> rows). 
+        This was used to speed up processing. You can upload the full dataset for comprehensive analysis.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% elif reports.summary.sampling_info and reports.summary.sampling_info.sampling_type == 'all' %}
+    <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+        <i class="fas fa-shield-alt"></i>
+        <strong>Full Dataset Processed:</strong> All <strong>{{ reports.summary.original_rows | int }}</strong> rows of your data were analyzed. 
+        This provides the most accurate insights.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
     <!-- Data Quality Metrics -->
     <div class="card step-card complete mb-4">
         <div class="card-header bg-light">

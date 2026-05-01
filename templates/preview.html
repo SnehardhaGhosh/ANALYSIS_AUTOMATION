@@ -8,10 +8,16 @@
     </a>
 </div>
 
+<!-- Pagination Info -->
+<div class="alert alert-info">
+    <strong>Viewing:</strong> Rows {{ start_row }} - {{ end_row }} of {{ total_rows }} total rows
+    (Page {{ current_page }} of {{ total_pages }})
+</div>
+
 <div class="card">
     <div class="card-header">
         <h5 class="mb-0">
-            <i class="fas fa-table"></i> Dataset Overview
+            <i class="fas fa-table"></i> Dataset Overview ({{ rows_per_page }} rows per page)
         </h5>
     </div>
     <div class="card-body">
@@ -28,7 +34,7 @@
                     {% for row in data %}
                     <tr>
                         {% for col in columns %}
-                        <td>{{ row[col] }}</td>
+                        <td>{{ row.get(col, 'unknown') }}</td>
                         {% endfor %}
                     </tr>
                     {% endfor %}
@@ -38,6 +44,66 @@
     </div>
 </div>
 
+<!-- Pagination Controls -->
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <!-- Previous button -->
+        {% if current_page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="/preview?page=1">
+                    <i class="fas fa-step-backward"></i> First
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="/preview?page={{ current_page - 1 }}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link"><i class="fas fa-step-backward"></i> First</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link"><i class="fas fa-chevron-left"></i> Previous</span>
+            </li>
+        {% endif %}
+        
+        <!-- Page numbers -->
+        {% for page_num in range(start_page, end_page) %}
+            {% if page_num == current_page %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="/preview?page={{ page_num }}">{{ page_num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        <!-- Next button -->
+        {% if current_page < total_pages %}
+            <li class="page-item">
+                <a class="page-link" href="/preview?page={{ current_page + 1 }}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="/preview?page={{ total_pages }}">
+                    Last <i class="fas fa-step-forward"></i>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next <i class="fas fa-chevron-right"></i></span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Last <i class="fas fa-step-forward"></i></span>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+
 <div class="row mt-4">
     <div class="col-md-6">
         <div class="card">
@@ -45,9 +111,10 @@
                 <h6 class="mb-0"><i class="fas fa-info-circle"></i> Dataset Info</h6>
             </div>
             <div class="card-body">
-                <p><strong>Columns:</strong> {{ columns|length }}</p>
-                <p><strong>Rows Previewed:</strong> {{ data|length }}</p>
-                <p><strong>File Type:</strong> Cleaned Dataset</p>
+                <p><strong>Total Columns:</strong> {{ columns|length }}</p>
+                <p><strong>Total Rows:</strong> {{ total_rows }}</p>
+                <p><strong>Displayed on this page:</strong> {{ data|length }}</p>
+                <p><strong>File Type:</strong> Processed Dataset</p>
             </div>
         </div>
     </div>
@@ -58,7 +125,7 @@
             </div>
             <div class="card-body">
                 {% if report %}
-                <pre class="bg-light p-2 rounded">{{ report }}</pre>
+                <pre class="bg-light p-2 rounded" style="font-size: 0.85rem; max-height: 300px; overflow-y: auto;">{{ report }}</pre>
                 {% else %}
                 <p class="text-muted">No validation issues found.</p>
                 {% endif %}

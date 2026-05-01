@@ -1,0 +1,444 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-center mb-4">
+                        <i class="fas fa-upload text-primary"></i> Upload Data File
+                    </h2>
+                    <p class="text-center text-muted mb-4">Supported formats: CSV, Excel (.xlsx/.xls), JSON</p>
+
+                    {% if request.args.get('error') %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {% if request.args.get('error') == 'no_file' %}
+                        <strong>No File Selected</strong> - Please select a file to upload.
+                        {% elif request.args.get('error') == 'unsupported' %}
+                        <strong>Unsupported Format</strong> - Please upload CSV, Excel (.xlsx/.xls), or JSON files only.
+                        {% elif request.args.get('error') == 'size' %}
+                        <strong>File Too Large</strong> - Maximum file size is 50MB. Your file exceeds this limit.
+                        {% elif request.args.get('error') == 'empty' %}
+                        <strong>Empty File</strong> - The file you uploaded is empty. Please check the file and try again.
+                        {% elif request.args.get('error') == 'corrupt' %}
+                        <strong>Corrupted File</strong> - Could not read the file. It may be corrupted or have an invalid format. Try:
+                        <br>• Opening it in Excel/Calc and resaving as CSV
+                        <br>• Checking for special characters in the filename
+                        <br>• Ensuring the file isn't password-protected
+                        {% elif request.args.get('error') == 'validate' %}
+                        <strong>Validation Failed</strong> - Could not validate the data structure. The file may have incompatible data types.
+                        {% elif request.args.get('error') == 'clean' %}
+                        <strong>Data Cleaning Failed</strong> - Error during data cleaning process. This is usually due to incompatible data types.
+                        {% elif request.args.get('error') == 'preprocess' %}
+                        <strong>Preprocessing Failed</strong> - Error during data preprocessing. Check that your data contains recognizable patterns.
+                        {% elif request.args.get('error') == 'transform' %}
+                        <strong>Transformation Failed</strong> - Error during feature engineering. The dataset may be too small or have incompatible columns.
+                        {% elif request.args.get('error') == 'save' %}
+                        <strong>Save Failed</strong> - Could not save processed data. Check available disk space.
+                        {% elif request.args.get('error') == 'process' %}
+                        <strong>Processing Error</strong> - An unexpected error occurred. Please check the file format and try again.
+                        {% else %}
+                        <strong>Error</strong> - An error occurred during upload. Please try again.
+                        {% endif %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <!-- File Upload Form -->
+                    <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data" novalidate>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="mb-3">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <p class="mb-2">Drag and drop your file here</p>
+                                <p class="text-muted mb-3">or click to browse</p>
+                                <input type="file" name="file" 
+                                       accept=".csv,.xlsx,.xls,.json" 
+                                       required 
+                                       class="form-control"
+                                       id="fileInput">
+                                <small class="text-muted d-block mt-2">
+                                    Maximum file size: 50MB
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- File Size Display -->
+                        <div class="alert alert-info mt-3" id="fileSizeAlert" style="display: none;">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>File Selected:</strong> <span id="fileName"></span> 
+                            (<span id="fileSize"></span>)
+                        </div>
+
+                        <!-- Data Sampling Options -->
+                        <div class="card mt-3" id="samplingOptions" style="display: none;">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3">
+                                    <i class="fas fa-sliders-h"></i> Processing Options
+                                </h6>
+                                <div class="mb-3">
+                                    <label for="samplingType" class="form-label">
+                                        Data Processing Mode
+                                    </label>
+                                    <select class="form-select" id="samplingType" name="sampling_type">
+                                        <option value="all" selected>Process All Data</option>
+                                        <option value="rows">First N Rows</option>
+                                        <option value="percent">First Percentage</option>
+                                    </select>
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-lightbulb"></i> Sampling reduces processing time for large datasets. You can analyze full data later.
+                                    </small>
+                                </div>
+
+                                <!-- Sampling Input: Rows -->
+                                <div class="mb-3" id="rowsInput" style="display: none;">
+                                    <label for="samplingRows" class="form-label">
+                                        Number of Rows to Process
+                                    </label>
+                                    <input type="number" class="form-control" id="samplingRows" name="sampling_rows" 
+                                           min="100" step="100" value="1000" 
+                                           placeholder="e.g., 1000">
+                                    <small class="text-muted d-block mt-2">
+                                        Minimum: 100 rows for meaningful analysis
+                                    </small>
+                                </div>
+
+                                <!-- Sampling Input: Percentage -->
+                                <div class="mb-3" id="percentInput" style="display: none;">
+                                    <label for="samplingPercent" class="form-label">
+                                        Percentage of Data to Process
+                                    </label>
+                                    <input type="number" class="form-control" id="samplingPercent" name="sampling_percent" 
+                                           min="1" max="100" step="5" value="50" 
+                                           placeholder="e.g., 50">
+                                    <small class="text-muted d-block mt-2">
+                                        Enter percentage: 1-100%
+                                    </small>
+                                </div>
+
+                                <div id="samplingInfo" class="alert alert-secondary" style="display: none;">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Estimated Processing Time:</strong> <span id="estimatedTime"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Processing Progress Bar -->
+                        <div class="mt-4" id="progressSection" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span><i class="fas fa-hourglass-start text-primary"></i> <strong>Processing Your Data</strong></span>
+                                <span id="progressPercent">0%</span>
+                            </div>
+                            <div class="progress mb-3" style="height: 25px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                     id="progressBar" role="progressbar" style="width: 0%" 
+                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <div class="alert alert-light border">
+                                <div id="progressSteps">
+                                    <div class="progress-step" id="step-upload">
+                                        <i class="fas fa-circle text-muted" style="font-size: 0.8rem;"></i> 
+                                        <span>Uploading file...</span>
+                                    </div>
+                                    <div class="progress-step" id="step-load">
+                                        <i class="fas fa-circle text-muted" style="font-size: 0.8rem;"></i> 
+                                        <span>Loading data...</span>
+                                    </div>
+                                    <div class="progress-step" id="step-validate">
+                                        <i class="fas fa-circle text-muted" style="font-size: 0.8rem;"></i> 
+                                        <span>Validating data...</span>
+                                    </div>
+                                    <div class="progress-step" id="step-clean">
+                                        <i class="fas fa-circle text-muted" style="font-size: 0.8rem;"></i> 
+                                        <span>Cleaning data...</span>
+                                    </div>
+                                    <div class="progress-step" id="step-preprocess">
+                                        <i class="fas fa-circle text-muted" style="font-size: 0.8rem;"></i> 
+                                        <span>Preprocessing...</span>
+                                    </div>
+                                    <div class="progress-step" id="step-transform">
+                                        <i class="fas fa-circle text-muted" style="font-size: 0.8rem;"></i> 
+                                        <span>Transforming data...</span>
+                                    </div>
+                                    <div class="progress-step" id="step-complete">
+                                        <i class="fas fa-circle text-muted" style="font-size: 0.8rem;"></i> 
+                                        <span>Finalizing...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2 mt-4" id="buttonSection">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1" id="submitBtn">
+                                <i class="fas fa-check-circle"></i> Upload & Process
+                            </button>
+                            <a href="/dashboard" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4" id="processingButtonSection" style="display: none;">
+                            <button type="button" class="btn btn-secondary btn-lg flex-grow-1" id="cancelBtn" disabled>
+                                <i class="fas fa-times"></i> Cancel Processing
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>File Processing:</strong> Your file will be automatically cleaned, validated, and prepared for analysis.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress-step {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 0.95rem;
+    gap: 10px;
+    transition: color 0.3s ease;
+}
+
+.progress-step i {
+    color: #999;
+    transition: color 0.3s ease;
+}
+
+.progress-step.active i {
+    color: #0056b3;
+    animation: spin 1s linear infinite;
+}
+
+.progress-step.completed i {
+    color: #28a745;
+}
+
+.progress-step.completed {
+    color: #28a745;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.upload-area {
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #0056b3;
+    background-color: #f8f9fa;
+}
+
+.upload-area.dragover {
+    border-color: #0056b3;
+    background-color: #e9ecef;
+}
+
+.upload-area input[type="file"] {
+    display: none;
+}
+
+.upload-area i {
+    color: #007bff;
+}
+</style>
+
+<script>
+// ========== FILE UPLOAD HANDLING ==========
+
+const fileInput = document.getElementById('fileInput');
+const uploadArea = document.getElementById('uploadArea');
+const uploadForm = document.getElementById('uploadForm');
+const fileSizeAlert = document.getElementById('fileSizeAlert');
+const samplingOptions = document.getElementById('samplingOptions');
+const samplingType = document.getElementById('samplingType');
+const rowsInput = document.getElementById('rowsInput');
+const percentInput = document.getElementById('percentInput');
+const samplingRows = document.getElementById('samplingRows');
+const samplingPercent = document.getElementById('samplingPercent');
+const estimatedTime = document.getElementById('estimatedTime');
+
+let selectedFile = null;
+
+// File input change
+fileInput.addEventListener('change', (e) => {
+    console.log('File input change event triggered');
+    const files = e.target.files;
+    console.log('Files selected:', files.length);
+    if (files.length > 0) {
+        console.log('Processing file:', files[0].name, files[0].size);
+        handleFileSelect(files[0]);
+    }
+});
+
+// Drag and drop
+uploadArea.addEventListener('click', () => {
+    console.log('Upload area clicked, triggering file input');
+    fileInput.click();
+});
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    console.log('File dragged over upload area');
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    console.log('File drag left upload area');
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    console.log('File dropped on upload area');
+    uploadArea.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    console.log('Dropped files count:', files.length);
+    if (files.length > 0) {
+        console.log('Processing dropped file:', files[0].name);
+        handleFileSelect(files[0]);
+        fileInput.files = files;
+    }
+});
+
+// Handle file selection
+function handleFileSelect(file) {
+    console.log('handleFileSelect called with:', file.name, file.size);
+    selectedFile = file;
+    
+    // Show file info
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = fileSizeMB + ' MB';
+    fileSizeAlert.style.display = 'block';
+    samplingOptions.style.display = 'block';
+    
+    console.log('File info displayed:', file.name, fileSizeMB, 'MB');
+    
+    // Update estimated time based on file size
+    updateEstimatedTime();
+}
+
+// Sampling type change
+samplingType.addEventListener('change', (e) => {
+    rowsInput.style.display = e.target.value === 'rows' ? 'block' : 'none';
+    percentInput.style.display = e.target.value === 'percent' ? 'block' : 'none';
+    document.getElementById('samplingInfo').style.display = 
+        e.target.value === 'all' ? 'none' : 'block';
+    updateEstimatedTime();
+});
+
+samplingRows.addEventListener('change', updateEstimatedTime);
+samplingPercent.addEventListener('change', updateEstimatedTime);
+
+function updateEstimatedTime() {
+    if (!selectedFile) return;
+    
+    const fileSizeMB = selectedFile.size / (1024 * 1024);
+    let baseTime = Math.ceil(fileSizeMB * 0.5); // ~0.5 sec per MB
+    let timeText = baseTime + ' seconds';
+    
+    if (samplingType.value === 'percent') {
+        const percent = parseInt(samplingPercent.value) || 50;
+        baseTime = Math.ceil(baseTime * (percent / 100));
+    }
+    
+    estimatedTime.textContent = baseTime + ' - ' + (baseTime + 5) + ' seconds';
+}
+
+// ========== FORM SUBMISSION ==========
+
+uploadForm.addEventListener('submit', (e) => {
+    const fileObj = selectedFile || (fileInput.files && fileInput.files[0]);
+    if (!fileObj) {
+        alert('Please select a file before uploading');
+        e.preventDefault();
+        return;
+    }
+
+    // Show immediate processing status
+    document.getElementById('buttonSection').style.display = 'none';
+    document.getElementById('processingButtonSection').style.display = 'flex';
+    document.getElementById('progressSection').style.display = 'block';
+    setTimeout(simulateProgress, 500);
+
+    // Native form submit to /upload (no JS prevention here)
+});
+
+function handleUploadError(errorMsg) {
+    alert('Error: ' + errorMsg);
+    document.getElementById('buttonSection').style.display = 'flex';
+    document.getElementById('processingButtonSection').style.display = 'none';
+    document.getElementById('progressSection').style.display = 'none';
+}
+
+// Simulate progress (will be improved with server-sent events in future)
+function simulateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const steps = [
+        { id: 'step-upload', percent: 10 },
+        { id: 'step-load', percent: 20 },
+        { id: 'step-validate', percent: 35 },
+        { id: 'step-clean', percent: 50 },
+        { id: 'step-preprocess', percent: 70 },
+        { id: 'step-transform', percent: 85 },
+        { id: 'step-complete', percent: 100 }
+    ];
+    
+    let stepIndex = 0;
+    
+    const interval = setInterval(() => {
+        if (stepIndex >= steps.length) {
+            clearInterval(interval);
+            return;
+        }
+        
+        const step = steps[stepIndex];
+        progressBar.style.width = step.percent + '%';
+        progressPercent.textContent = step.percent + '%';
+        
+        // Mark previous step as completed
+        if (stepIndex > 0) {
+            const prevStep = document.getElementById(steps[stepIndex - 1].id);
+            if (prevStep) {
+                prevStep.classList.remove('active');
+                prevStep.classList.add('completed');
+                prevStep.querySelector('i').className = 'fas fa-check-circle';
+            }
+        }
+        
+        // Mark current step as active
+        const currentStep = document.getElementById(step.id);
+        if (currentStep) {
+            currentStep.classList.add('active');
+            currentStep.querySelector('i').className = 'fas fa-circle-notch';
+        }
+        
+        stepIndex++;
+    }, 3000); // Update every 3 seconds
+}
+
+</script>
+
+{% endblock %}

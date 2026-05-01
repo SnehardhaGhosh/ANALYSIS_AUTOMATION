@@ -1,81 +1,78 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow">
+        <div class="col-lg-6">
+            <div class="card shadow-lg">
                 <div class="card-body p-5">
-                    <h2 class="card-title text-center mb-4">
-                        <i class="fas fa-upload text-primary"></i> Upload Data File
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-file-upload text-primary"></i> Upload Data File
                     </h2>
-                    <p class="text-center text-muted mb-4">Supported formats: CSV, Excel (.xlsx/.xls), JSON</p>
 
                     {% if request.args.get('error') %}
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle"></i>
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <strong>Error:</strong>
                         {% if request.args.get('error') == 'no_file' %}
-                        <strong>No File Selected</strong> - Please select a file to upload.
+                            Please select a file to upload.
                         {% elif request.args.get('error') == 'unsupported' %}
-                        <strong>Unsupported Format</strong> - Please upload CSV, Excel (.xlsx/.xls), or JSON files only.
+                            Unsupported file format. Use CSV, Excel, or JSON.
                         {% elif request.args.get('error') == 'size' %}
-                        <strong>File Too Large</strong> - Maximum file size is 50MB. Your file exceeds this limit.
+                            File is too large (max 50MB).
                         {% elif request.args.get('error') == 'empty' %}
-                        <strong>Empty File</strong> - The file you uploaded is empty. Please check the file and try again.
+                            File is empty. Please check and try again.
                         {% elif request.args.get('error') == 'corrupt' %}
-                        <strong>Corrupted File</strong> - Could not read the file. It may be corrupted or have an invalid format. Try:
-                        <br>• Opening it in Excel/Calc and resaving as CSV
-                        <br>• Checking for special characters in the filename
-                        <br>• Ensuring the file isn't password-protected
-                        {% elif request.args.get('error') == 'validate' %}
-                        <strong>Validation Failed</strong> - Could not validate the data structure. The file may have incompatible data types.
-                        {% elif request.args.get('error') == 'clean' %}
-                        <strong>Data Cleaning Failed</strong> - Error during data cleaning process. This is usually due to incompatible data types.
-                        {% elif request.args.get('error') == 'preprocess' %}
-                        <strong>Preprocessing Failed</strong> - Error during data preprocessing. Check that your data contains recognizable patterns.
-                        {% elif request.args.get('error') == 'transform' %}
-                        <strong>Transformation Failed</strong> - Error during feature engineering. The dataset may be too small or have incompatible columns.
-                        {% elif request.args.get('error') == 'save' %}
-                        <strong>Save Failed</strong> - Could not save processed data. Check available disk space.
-                        {% elif request.args.get('error') == 'process' %}
-                        <strong>Processing Error</strong> - An unexpected error occurred. Please check the file format and try again.
+                            Could not read file. It may be corrupted.
                         {% else %}
-                        <strong>Error</strong> - An error occurred during upload. Please try again.
+                            Upload failed. Please try again.
                         {% endif %}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                     {% endif %}
 
-                    <form method="POST" enctype="multipart/form-data">
-                        <div class="upload-area">
-                            <div class="mb-3">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <p class="mb-2">Drag and drop your file here</p>
-                                <p class="text-muted mb-3">or click to browse</p>
-                                <input type="file" name="file" 
-                                       accept=".csv,.xlsx,.xls,.json" 
-                                       required 
-                                       class="form-control"
-                                       id="fileInput">
-                                <small class="text-muted d-block mt-2">
-                                    Maximum file size: 50MB
-                                </small>
-                            </div>
+                    <!-- Simple Upload Form -->
+                    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                        <!-- File Input -->
+                        <div class="mb-4">
+                            <label for="fileInput" class="form-label fw-bold">Select File</label>
+                            <input type="file" 
+                                   class="form-control form-control-lg" 
+                                   id="fileInput" 
+                                   name="file"
+                                   accept=".csv,.xlsx,.xls,.json"
+                                   required>
+                            <small class="text-muted d-block mt-2">
+                                Supported: CSV, Excel (.xlsx/.xls), JSON | Max: 50MB
+                            </small>
                         </div>
-                        
-                        <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
-                                <i class="fas fa-check-circle"></i> Upload & Process
+
+                        <!-- File Info -->
+                        <div id="fileInfo" class="alert alert-info" style="display:none;">
+                            <strong>File:</strong> <span id="fileName"></span><br>
+                            <strong>Size:</strong> <span id="fileSize"></span>
+                        </div>
+
+                        <!-- Processing Status (shown during upload) -->
+                        <div id="processingStatus" class="alert alert-warning" style="display:none;">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                            <strong>Processing your file...</strong> Please wait.
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2" id="buttonGroup">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                <i class="fas fa-upload"></i> Upload & Process
                             </button>
-                            <a href="/dashboard" class="btn btn-outline-secondary btn-lg">
-                                <i class="fas fa-times"></i> Cancel
+                            <a href="/dashboard" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
                             </a>
                         </div>
                     </form>
 
-                    <div class="alert alert-info mt-4">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>File Processing:</strong> Your file will be automatically cleaned, validated, and prepared for analysis.
+                    <div class="alert alert-info mt-4 small">
+                        <strong>What happens next:</strong> Your file will be validate, cleaned, and prepared for analysis. You'll be redirected to the dashboard.
                     </div>
                 </div>
             </div>
@@ -84,30 +81,31 @@
 </div>
 
 <script>
-// Drag and drop functionality
 const fileInput = document.getElementById('fileInput');
-const uploadArea = document.querySelector('.upload-area');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const processingStatus = document.getElementById('processingStatus');
+const uploadForm = document.getElementById('uploadForm');
+const buttonGroup = document.getElementById('buttonGroup');
 
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = '#0056b3';
-    uploadArea.style.backgroundColor = '#e9ecef';
-});
-
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.style.borderColor = '#007bff';
-    uploadArea.style.backgroundColor = 'rgba(255,255,255,0.9)';
-});
-
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = '#007bff';
-    uploadArea.style.backgroundColor = 'rgba(255,255,255,0.9)';
-    
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-        fileInput.files = files;
+// Show file info when selected
+fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        fileInfo.style.display = 'block';
+    } else {
+        fileInfo.style.display = 'none';
     }
+});
+
+// Show processing message and submit
+uploadForm.addEventListener('submit', (e) => {
+    // Allow default form submission
+    processingStatus.style.display = 'block';
+    buttonGroup.style.display = 'none';
 });
 </script>
 

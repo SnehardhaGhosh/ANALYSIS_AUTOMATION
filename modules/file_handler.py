@@ -166,24 +166,92 @@ def load_json(filepath):
     raise ValueError(f"Failed to load JSON file with all attempted strategies")
 
 
+def detect_and_skip_header_rows(df):
+    """
+    Detects and removes duplicate header rows that may have been loaded as data
+    Returns cleaned dataframe without header rows in data
+    """
+    if len(df) == 0:
+        return df
+    
+    # Check if first row contains column names or looks like a header
+    first_row = df.iloc[0]
+    columns_in_first = sum(1 for val in first_row if str(val).lower() in [str(c).lower() for c in df.columns])
+    
+    # If first row contains column names, it's a duplicate header
+    if columns_in_first > len(df.columns) * 0.5 and len(df) > 1:
+        df = df.iloc[1:].reset_index(drop=True)
+    
+    return df
+
+
+def convert_columns_to_proper_types(df):
+    """
+    Intelligently converts dataframe columns to proper types
+    Handles mixed types by coercing to most appropriate type
+    """
+    df = df.copy()
+    
+    for col in df.columns:
+        # Get non-null sample for analysis
+        non_null = df[col].dropna()
+        if len(non_null) == 0:
+            continue
+        
+        # Try numeric conversion first
+        try:
+            numeric_converted = pd.to_numeric(non_null, errors='coerce')
+            numeric_ratio = numeric_converted.notna().sum() / len(non_null)
+            
+            if numeric_ratio > 0.8:  # 80% successful conversion
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                continue
+        except:
+            pass
+        
+        # Try datetime conversion
+        try:
+            # Sample check
+            sample = non_null.astype(str).head(5)
+            datetime_patterns = r'^\d{4}-\d{2}-\d{2}|^\d{2}/\d{2}/\d{4}|^\d{1,2}-\w+-\d{2,4}|^\d{1,2}/\d{1,2}/\d{2,4}'
+            if sample.str.match(datetime_patterns).sum() / len(sample) > 0.6:
+                df[col] = pd.to_datetime(df[col], errors='coerce')
+                continue
+        except:
+            pass
+        
+        # Convert to string as fallback
+        df[col] = df[col].astype(str)
+    
+    return df
+
+
 def load_file(filepath):
     """
     Universal file loader - detects format and uses appropriate robust loader
     Supports: CSV, Excel (.xlsx, .xls), JSON, JSONL
+    Includes automatic type conversion and header detection
     """
     file_ext = os.path.splitext(filepath)[1].lower()
     
-    if file_ext == '.csv':
-        return load_csv(filepath)
+    try:
+        if file_ext == '.csv':
+            df = load_csv(filepath)
+        elif file_ext in ['.xlsx', '.xls']:
+            df = load_excel(filepath)
+        elif file_ext in ['.json', '.jsonl']:
+            df = load_json(filepath)
+        else:
+            raise ValueError(f"Unsupported file type: {file_ext}. Supported: CSV, JSON, JSONL, XLS, XLSX")
+        
+        # Post-load processing
+        df = detect_and_skip_header_rows(df)
+        df = convert_columns_to_proper_types(df)
+        
+        return df
     
-    elif file_ext in ['.xlsx', '.xls']:
-        return load_excel(filepath)
-    
-    elif file_ext in ['.json', '.jsonl']:
-        return load_json(filepath)
-    
-    else:
-        raise ValueError(f"Unsupported file type: {file_ext}. Supported: CSV, JSON, JSONL, XLS, XLSX")
+    except Exception as e:
+        raise ValueError(f"Failed to load file {filepath}: {str(e)}")
 
 
 # Backward compatibility
