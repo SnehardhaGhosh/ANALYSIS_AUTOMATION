@@ -35,8 +35,22 @@
                     <a class="nav-link" href="/visualize"><i class="fas fa-chart-pie me-2"></i>Analytics Hub</a>
                 </li>
                 {% endif %}
-                <li class="nav-item nav-logout-gap">
-                    <a class="nav-link" href="/logout"><i class="fas fa-power-off me-2"></i>Logout</a>
+                <li class="nav-item nav-logout-gap d-flex align-items-center gap-2 ms-3">
+                    {% if session.get('username') or session.get('user_email') %}
+                    {%- set uname = session.get('username') or session.get('user_email', 'U').split('@')[0] -%}
+                    <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-pill"
+                         style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);">
+                        <div style="width:28px;height:28px;border-radius:50%;background:#fbbc04;
+                                    display:flex;align-items:center;justify-content:center;
+                                    font-weight:700;font-size:0.8rem;color:#202124;flex-shrink:0;">
+                            {{ uname[0] | upper }}
+                        </div>
+                        <span class="text-white" style="font-size:0.875rem;font-weight:500;max-width:120px;
+                              overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                              title="{{ uname }}">{{ uname | capitalize }}</span>
+                    </div>
+                    {% endif %}
+                    <a class="nav-link" href="/logout"><i class="fas fa-power-off me-1"></i>Logout</a>
                 </li>
             </ul>
         </div>

@@ -5,10 +5,21 @@
     <h2 class="display-4" style="font-weight: 800; letter-spacing: -2px; color: #16191f;">
         <i class="fas fa-database text-warning icon-pulse me-2"></i> DATA INTELLIGENCE
     </h2>
-    <p class="text-muted" style="font-size: 1.1rem; border-left: 4px solid #FBBC05; padding-left: 15px;">Welcome, <span
-            class="text-primary" style="font-weight: 700;">{{ session.get('user', 'User') }}</span>. Your cognitive
-        analysis center is ready.</p>
+    <p class="text-muted" style="font-size: 1.1rem; border-left: 4px solid #FBBC05; padding-left: 15px;">
+        <span id="timeGreeting"></span>, <span class="text-primary fw-bold">
+            {%- set display_name = session.get('username') or session.get('user_email', 'User').split('@')[0] -%}
+            {{ display_name | capitalize }}
+        </span>. Your cognitive analysis center is ready.
+    </p>
 </div>
+
+<script>
+    (function() {
+        const h = new Date().getHours();
+        const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+        document.getElementById('timeGreeting').textContent = greeting;
+    })();
+</script>
 
 <div class="steps row stagger-entrance stagger-2">
     <div class="col-md-4 mb-3">

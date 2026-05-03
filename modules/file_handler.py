@@ -48,47 +48,48 @@ def load_csv(filepath):
 
 def load_excel(filepath):
     """
-    Robust Excel loader with fallback options
-    Handles: multiple sheets, different sheet names, encoding issues
-    Note: If xlrd causes syntax errors, converts Excel to CSV on the fly
+    Fast Excel loader — tries engines in order of speed:
+    1. calamine  (fastest — no style parsing)
+    2. openpyxl read_only mode
+    3. openpyxl standard (fullback)
     """
+    # Strategy 1: calamine — up to 5x faster than openpyxl for large files
     try:
-        # Try openpyxl (safest for modern Excel files)
+        import python_calamine  # noqa
+        df = pd.read_excel(filepath, sheet_name=0, engine='calamine')
+        if len(df) > 0:
+            return df
+    except Exception:
+        pass
+
+    # Strategy 2: openpyxl in read_only mode — skips style/formatting load
+    try:
+        df = pd.read_excel(filepath, sheet_name=0, engine='openpyxl',
+                           engine_kwargs={'read_only': True, 'data_only': True})
+        if len(df) > 0:
+            return df
+    except Exception:
+        pass
+
+    # Strategy 3: standard openpyxl (safest fallback)
+    try:
         df = pd.read_excel(filepath, sheet_name=0, engine='openpyxl')
         if len(df) > 0:
             return df
-    except SyntaxError:
-        # xlrd has Python 2 syntax - convert to CSV using openpyxl directly
-        try:
-            from openpyxl import load_workbook
-            wb = load_workbook(filepath)
-            ws = wb.active
-            
-            # Extract data from worksheet
-            data = []
-            for row in ws.iter_rows(values_only=True):
-                data.append(row)
-            
-            if data:
-                # First row is headers
-                df = pd.DataFrame(data[1:], columns=data[0])
-                return df
-        except Exception:
-            pass
-    except Exception as e:
+    except Exception:
         pass
-    
+
     try:
-        # Try loading all sheets and concatenate
+        # Last resort: concat all sheets
         all_sheets = pd.read_excel(filepath, sheet_name=None, engine='openpyxl')
         if isinstance(all_sheets, dict):
-            dfs = [df for df in all_sheets.values() if len(df) > 0]
+            dfs = [d for d in all_sheets.values() if len(d) > 0]
             if dfs:
                 return pd.concat(dfs, ignore_index=True)
     except Exception:
         pass
-    
-    raise ValueError(f"Failed to load Excel file")
+
+    raise ValueError("Failed to load Excel file")
 
 
 def load_json(filepath):
@@ -187,42 +188,41 @@ def detect_and_skip_header_rows(df):
 
 def convert_columns_to_proper_types(df):
     """
-    Intelligently converts dataframe columns to proper types
-    Handles mixed types by coercing to most appropriate type
+    Intelligently converts dataframe columns to proper types.
+    Uses a SAMPLE of rows for type inference to keep large files fast.
     """
     df = df.copy()
-    
+    # Sample at most 500 rows for type inference — avoids O(n) on every column
+    sample_size = min(500, len(df))
+    sample = df.sample(n=sample_size, random_state=42) if len(df) > sample_size else df
+
     for col in df.columns:
-        # Get non-null sample for analysis
-        non_null = df[col].dropna()
+        non_null = sample[col].dropna()
         if len(non_null) == 0:
             continue
-        
-        # Try numeric conversion first
+
+        # Try numeric conversion
         try:
             numeric_converted = pd.to_numeric(non_null, errors='coerce')
-            numeric_ratio = numeric_converted.notna().sum() / len(non_null)
-            
-            if numeric_ratio > 0.8:  # 80% successful conversion
+            if numeric_converted.notna().sum() / len(non_null) > 0.8:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
                 continue
-        except:
+        except Exception:
             pass
-        
-        # Try datetime conversion
+
+        # Try datetime conversion (sample check only)
         try:
-            # Sample check
-            sample = non_null.astype(str).head(5)
-            datetime_patterns = r'^\d{4}-\d{2}-\d{2}|^\d{2}/\d{2}/\d{4}|^\d{1,2}-\w+-\d{2,4}|^\d{1,2}/\d{1,2}/\d{2,4}'
-            if sample.str.match(datetime_patterns).sum() / len(sample) > 0.6:
+            s = non_null.astype(str).head(5)
+            dt_pat = r'^\d{4}-\d{2}-\d{2}|^\d{2}/\d{2}/\d{4}|^\d{1,2}-\w+-\d{2,4}|^\d{1,2}/\d{1,2}/\d{2,4}'
+            if s.str.match(dt_pat).sum() / len(s) > 0.6:
                 df[col] = pd.to_datetime(df[col], errors='coerce')
                 continue
-        except:
+        except Exception:
             pass
-        
-        # Convert to string as fallback
+
+        # Fallback: keep as string
         df[col] = df[col].astype(str)
-    
+
     return df
 
 

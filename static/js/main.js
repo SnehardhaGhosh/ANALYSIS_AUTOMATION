@@ -62,3 +62,71 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+
+// ============================================================
+//  GLOBAL: Single-click protection for all navigation buttons
+// ============================================================
+(function () {
+    // Inject a slim top-loading bar into every page
+    const bar = document.createElement('div');
+    bar.id = 'nav-progress-bar';
+    bar.style.cssText = [
+        'position:fixed', 'top:0', 'left:0', 'width:0%', 'height:3px',
+        'background:linear-gradient(90deg,#1a73e8,#34a853)',
+        'z-index:9999', 'transition:width 0.3s ease', 'opacity:0',
+        'pointer-events:none'
+    ].join(';');
+    document.body.prepend(bar);
+
+    function startBar() {
+        bar.style.opacity = '1';
+        bar.style.width = '70%';
+        setTimeout(() => { bar.style.width = '90%'; }, 400);
+    }
+
+    // Lock a button (disable + show spinner text)
+    function lockBtn(btn) {
+        if (btn.dataset.locked) return false;   // already locked
+        btn.dataset.locked = '1';
+        btn.disabled = true;
+        const icon = btn.querySelector('i');
+        if (icon && !icon.classList.contains('fa-spinner')) {
+            icon.className = 'fas fa-spinner fa-spin';
+        }
+        return true;
+    }
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[type="submit"], a.btn, button.btn');
+        if (!btn) return;
+
+        // Skip buttons with data-no-lock attribute
+        if (btn.dataset.noLock !== undefined) return;
+
+        // Skip already-disabled buttons
+        if (btn.disabled && !btn.dataset.locked) return;
+
+        const isLink = btn.tagName === 'A';
+        const isSubmit = btn.type === 'submit';
+
+        if (isSubmit) {
+            // Let form submit handle locking itself if it has custom handler
+            // but still start the nav bar
+            startBar();
+        } else if (isLink && btn.href && !btn.href.startsWith('#')) {
+            lockBtn(btn);
+            startBar();
+        } else if (!isLink) {
+            // Generic button
+            lockBtn(btn);
+            startBar();
+        }
+    }, true);
+
+    // Complete the bar on page unload (navigating away)
+    window.addEventListener('beforeunload', () => {
+        bar.style.width = '100%';
+        setTimeout(() => { bar.style.opacity = '0'; }, 300);
+    });
+})();

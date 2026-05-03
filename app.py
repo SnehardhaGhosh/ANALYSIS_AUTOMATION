@@ -41,6 +41,7 @@ try:
     from modules.ai_engine import ask_groq, ask_gemini, ask_huggingface
     from modules.prompt_builder import build_prompt
     from modules.query_executor import execute_safe_query
+    from modules.stat_intelligence import generate_statistical_intelligence
 except ImportError as e:
     logger.error(f"Failed to import modules: {str(e)}")
     raise
@@ -102,7 +103,9 @@ def login():
             user = verify_user(email, password)
 
             if user:
-                session['user_id'] = user[0]
+                session['user_id']    = user[0]
+                session['username']   = user[1]   # username column
+                session['user_email'] = user[2]   # email column
                 logger.info(f"User {email} logged in successfully")
                 return redirect('/dashboard')
             else:
@@ -260,14 +263,29 @@ def upload():
                     }
                 
                 else:
-                    # Process all data
-                    logger.info(f"✓ No sampling: Processing all {original_rows} rows")
-                    sampling_info = {
-                        'sampling_type': 'all',
-                        'original_rows': original_rows,
-                        'sampled_rows': original_rows,
-                        'sampling_percent': 100.0
-                    }
+                    # Auto-sample large files to speed up processing
+                    # XLSX is ~5x slower to parse than CSV, so use lower threshold
+                    is_excel = file_ext in ['.xlsx', '.xls']
+                    auto_limit = 5000 if is_excel else 10000
+
+                    if original_rows > auto_limit:
+                        sampled_rows = auto_limit
+                        df = df.sample(n=sampled_rows, random_state=42)
+                        sampling_info = {
+                            'sampling_type': 'auto',
+                            'original_rows': original_rows,
+                            'sampled_rows': sampled_rows,
+                            'sampling_percent': round((sampled_rows / original_rows) * 100, 2)
+                        }
+                        logger.info(f"✓ Auto-sampling: {file_ext} file reduced to {sampled_rows} rows")
+                    else:
+                        logger.info(f"✓ No sampling needed: {original_rows} rows within limit")
+                        sampling_info = {
+                            'sampling_type': 'all',
+                            'original_rows': original_rows,
+                            'sampled_rows': original_rows,
+                            'sampling_percent': 100.0
+                        }
                     
             except Exception as sample_err:
                 logger.warning(f"Sampling error (continuing with all data): {str(sample_err)}")
@@ -315,20 +333,27 @@ def upload():
             except Exception as save_raw_err:
                 logger.warning(f"Could not save cleaned raw dataset: {save_raw_err}")
 
-            # ===== STEP 4: PREPROCESS DATA =====
+            # ===== STEP 4: PREPROCESS DATA (skipped for large datasets) =====
             logger.info(f"STEP 4: Preprocessing data...")
             try:
-                df = preprocess_data(df)
-                if df is None:
-                    logger.error("Preprocessing resulted in None")
-                    return redirect('/upload?error=preprocess')
-                preprocessing_report = get_preprocessing_report(df)
-                logger.info(f"✓ Preprocessing complete")
+                # Skip heavy ML preprocessing (MinMaxScaler/log-transform) for large datasets
+                # It is NOT needed for EDA/visualization and adds significant latency
+                rows_to_preprocess = len(df)
+                if rows_to_preprocess > 3000:
+                    logger.info(f"✓ Preprocessing skipped for large dataset ({rows_to_preprocess} rows) — using cleaned data directly")
+                    preprocessing_report = {'steps': [{'step': 'Skipped (large dataset — cleaned data used directly)'}]}
+                else:
+                    df = preprocess_data(df)
+                    if df is None:
+                        logger.error("Preprocessing resulted in None")
+                        return redirect('/upload?error=preprocess')
+                    preprocessing_report = get_preprocessing_report(df)
+                    logger.info(f"✓ Preprocessing complete")
             except Exception as prep_err:
                 logger.error(f"STEP 4 FAILED - Preprocessing error: {str(prep_err)}")
                 import traceback
                 logger.error(traceback.format_exc())
-                return redirect('/upload?error=preprocess')
+                preprocessing_report = {'steps': []}
             
             # ===== STEP 5: TRANSFORM DATA =====
             logger.info(f"STEP 5: Transforming data...")
@@ -493,8 +518,15 @@ def preview():
         page_df = df.iloc[start_idx:end_idx]
         page_data = page_df.to_dict(orient='records')
         
-        # Validate entire dataset for quality report
-        report = validate_data(df)
+        # Validate entire dataset for quality report — use session cache to avoid re-running on every page flip
+        cache_key = session.get('preview_validate_cache_key')
+        current_key = session.get('dataset', '')[:50]  # use dataset path as key
+        if cache_key == current_key and 'validation_report' in session:
+            report = session['validation_report']
+        else:
+            report = validate_data(df)
+            session['preview_validate_cache_key'] = current_key
+            session['validation_report'] = report
         
         # Calculate pagination range to avoid Jinja max/min errors
         start_page = max(1, page - 2)
@@ -634,7 +666,14 @@ def eda():
         # Performance: Check cache for EDA specific results
         eda_cache = session.get('eda_cache', {})
         
-        if eda_cache and eda_cache.get('dataset_path') == session.get('dataset'):
+        # Invalidate cache if dataset changed OR if the intelligence schema is outdated
+        cache_valid = (
+            eda_cache
+            and eda_cache.get('dataset_path') == session.get('dataset')
+            and 'column_insights' in eda_cache.get('full_reports', {}).get('intelligence', {})
+        )
+        
+        if cache_valid:
             full_reports = eda_cache['full_reports']
             all_columns = eda_cache['all_columns']
         else:
@@ -649,13 +688,17 @@ def eda():
             # Calculate predictive trends
             from modules.visualizations import get_predictive_trends
             predictive_data = get_predictive_trends(df)
+
+            # Calculate decision-focused statistical intelligence
+            intelligence = generate_statistical_intelligence(df)
             
             full_reports = {
                 'summary': reports,
                 'stats': summary_stats,
                 'correlations': corr_matrix,
                 'numeric_columns': numeric_cols,
-                'predictive_trends': predictive_data
+                'predictive_trends': predictive_data,
+                'intelligence': intelligence
             }
             
             # Update cache
