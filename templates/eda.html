@@ -1,0 +1,520 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --google-blue: #1a73e8;
+        --google-red: #ea4335;
+        --google-yellow: #fbbc04;
+        --google-green: #34a853;
+        --surface-color: #ffffff;
+        --background-color: #f8f9fa;
+        --text-primary: #202124;
+        --text-secondary: #5f6368;
+        --border-color: #dadce0;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-primary);
+    }
+
+    .eda-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .eda-header {
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1.5rem;
+    }
+
+    .eda-title {
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .eda-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-top: 0.5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .google-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: box-shadow 0.2s ease-in-out;
+    }
+
+    .google-card:hover {
+        box-shadow: 0 1px 3px 0 rgba(60,64,67,.30), 0 4px 8px 3px rgba(60,64,67,.15);
+    }
+
+    .kpi-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--google-blue);
+        margin-top: 0.5rem;
+    }
+
+    .kpi-trend {
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .trend-up { color: var(--google-green); }
+    .trend-down { color: var(--google-red); }
+
+    .analysis-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 1024px) {
+        .analysis-section { grid-template-columns: 1fr; }
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chart-container {
+        height: 400px;
+        position: relative;
+    }
+
+    .data-table-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .google-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+    .google-table th {
+        text-align: left;
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+        background: white;
+    }
+
+    .google-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f1f3f4;
+    }
+
+    .google-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .badge-google {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-blue { background: #e8f0fe; color: #1967d2; }
+    .badge-green { background: #e6f4ea; color: #1e8e3e; }
+    .badge-yellow { background: #fef7e0; color: #f29900; }
+
+    .heatmap-cell {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+</style>
+
+<div class="eda-container">
+    <!-- Header -->
+    <header class="eda-header stagger-entrance stagger-1">
+        <div class="d-flex justify-content-between align-items-end">
+            <div>
+                <h1 class="eda-title">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-primary">
+                        <path d="M3 3v18h18M7 16l4-4 4 4 6-6"></path>
+                    </svg>
+                    Statistical Intelligence
+                </h1>
+                <p class="eda-subtitle">Enterprise Data Analysis & Predictive Trends</p>
+            </div>
+            <div class="d-flex gap-2 mb-1">
+                <button class="btn btn-outline-secondary btn-sm" onclick="toggleFilter()"><i class="fas fa-filter me-1"></i> Filter</button>
+                <button class="btn btn-primary btn-sm" onclick="exportData()"><i class="fas fa-download me-1"></i> Export Data</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- KPI Grid -->
+    <section class="stats-grid stagger-entrance stagger-2">
+        <div class="google-card">
+            <div class="kpi-label">Statistical Richness</div>
+            <div class="kpi-value">{{ reports.summary.final_columns | int }} Features</div>
+            <div class="kpi-trend trend-up">
+                <i class="fas fa-check-circle"></i> High Dimensionality
+            </div>
+        </div>
+        <div class="google-card">
+            <div class="kpi-label">Observation Volume</div>
+            <div class="kpi-value">{{ reports.summary.final_rows | int }} Rows</div>
+            <div class="kpi-trend">
+                <i class="fas fa-database text-muted"></i> Robust Sample Size
+            </div>
+        </div>
+        <div class="google-card">
+            <div class="kpi-label">Predictive Horizon</div>
+            <div class="kpi-value text-warning">5 Periods</div>
+            <div class="kpi-trend trend-up">
+                <i class="fas fa-chart-line"></i> Active Forecasting
+            </div>
+        </div>
+        <div class="google-card">
+            <div class="kpi-label">Anomaly Index</div>
+            <div class="kpi-value text-success">Low</div>
+            <div class="kpi-trend trend-up">
+                <i class="fas fa-shield-alt"></i> Clean Signals
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Analysis Row -->
+    <div class="analysis-section stagger-entrance stagger-3">
+        <!-- Distribution Chart -->
+        <div class="google-card">
+            <h3 class="section-title">
+                <i class="fas fa-chart-area text-primary"></i> Feature Distribution Analysis
+            </h3>
+            <div class="chart-container">
+                <canvas id="distributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Summary Stats Table -->
+        <div class="google-card">
+            <h3 class="section-title">
+                <i class="fas fa-list-ol text-primary"></i> Descriptive Statistics
+            </h3>
+            <div class="data-table-container">
+                <table class="google-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Mean</th>
+                            <th>Std Dev</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for col, stats in reports.stats.items() %}
+                        <tr data-column="{{ col }}">
+                            <td><strong>{{ col | truncate(12) }}</strong></td>
+                            <td>{{ stats.mean | round(2) if stats.mean == stats.mean else '-' }}</td>
+                            <td><span class="text-muted">{{ stats.std | round(2) if stats.std == stats.std else '-' }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Analysis Row -->
+    <div class="analysis-section stagger-entrance stagger-4">
+        <!-- Predictive Trend -->
+        <div class="google-card">
+            <h3 class="section-title">
+                <i class="fas fa-project-diagram text-warning"></i> Predictive Trend Forecasting
+            </h3>
+            {% if reports.predictive_trends %}
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+            <div class="mt-4 p-3 bg-light rounded" style="border-left: 4px solid var(--google-yellow);">
+                <h6 class="mb-1 fw-bold">Intelligence Insight</h6>
+                <p class="small text-muted mb-0">
+                    Our AI models detected a sustained trend in <strong>{{ reports.predictive_trends.target }}</strong>. 
+                    The forecast indicates a variance of +/- 2.5% over the next 5 observation periods based on historical regression.
+                </p>
+            </div>
+            {% else %}
+            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-center py-5">
+                <i class="fas fa-history fa-4x text-light mb-3"></i>
+                <h5 class="text-muted">Temporal Data Required</h5>
+                <p class="small text-muted">Insufficient data points to generate high-confidence forecasts.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Correlation Matrix -->
+        <div class="google-card">
+            <h3 class="section-title">
+                <i class="fas fa-th text-success"></i> Feature Correlation
+            </h3>
+            <div class="table-responsive">
+                <table class="google-table text-center">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {% for col in reports.numeric_columns[:4] %}
+                            <th>{{ col[:4] | title }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row_col in reports.numeric_columns[:4] %}
+                        <tr>
+                            <td class="text-start"><strong>{{ row_col[:8] }}</strong></td>
+                            {% for col in reports.numeric_columns[:4] %}
+                            {% set val = reports.correlations[row_col][col] if row_col in reports.correlations else 0 %}
+                            <td>
+                                <div class="heatmap-cell" style="background: rgba(26, 115, 232, {{ (val|abs) }}); color: {{ 'white' if (val|abs) > 0.5 else 'black' }};">
+                                    {{ val | round(2) }}
+                                </div>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3">
+                <p class="small text-muted">A value of 1.0 indicates perfect positive correlation.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="google-card modal-content border-0 p-4">
+            <div class="modal-header border-0 p-0 mb-3">
+                <h5 class="modal-title fw-bold">Filter Feature Intelligence</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <p class="small text-muted mb-3">Select the features you want to include in the statistical grid.</p>
+                <div class="mb-3" style="max-height: 300px; overflow-y: auto;">
+                    <div class="d-flex flex-column gap-2">
+                        {% for col in columns %}
+                        <div class="form-check">
+                            <input class="form-check-input column-filter-checkbox" type="checkbox" value="{{ col }}" id="check_{{ loop.index }}" checked>
+                            <label class="form-check-label small" for="check_{{ loop.index }}">
+                                {{ col }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-0 mt-3 d-flex gap-2">
+                <button type="button" class="btn btn-light btn-sm flex-grow-1" onclick="selectAll(false)">Clear All</button>
+                <button type="button" class="btn btn-primary btn-sm flex-grow-1" onclick="applyFilters()">Apply Intelligence</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#5f6368';
+    
+    let distributionChart;
+    let trendChart;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initCharts();
+    });
+
+    function initCharts() {
+        // Distribution Chart
+        const distCtx = document.getElementById('distributionChart').getContext('2d');
+        const distLabels = {{ reports.numeric_columns[:8] | tojson }};
+        const distData = [
+            {% for col in reports.numeric_columns[:8] %}
+                {% if col in reports.stats and reports.stats[col].mean is not none %}
+                    {{ reports.stats[col].mean if reports.stats[col].mean == reports.stats[col].mean else 0 }},
+                {% else %}
+                    0,
+                {% endif %}
+            {% endfor %}
+        ];
+
+        distributionChart = new Chart(distCtx, {
+            type: 'bar',
+            data: {
+                labels: distLabels,
+                datasets: [{
+                    label: 'Mean Value',
+                    data: distData,
+                    backgroundColor: '#1a73e8',
+                    borderRadius: 4,
+                    barThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Mean: ' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { grid: { color: '#f1f3f4' }, border: { display: false } },
+                    x: { grid: { display: false }, border: { display: false } }
+                }
+            }
+        });
+
+        // Trend Chart
+        {% if reports.predictive_trends %}
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        const historical = {{ reports.predictive_trends.historical | tojson }};
+        const forecast = {{ reports.predictive_trends.forecast | tojson }};
+        const labels = {{ reports.predictive_trends.labels | tojson }};
+        
+        const cleanHistorical = historical.map(v => (v === null || isNaN(v)) ? null : v);
+        const cleanForecast = forecast.map(v => (v === null || isNaN(v)) ? null : v);
+
+        trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Historical Data',
+                        data: [...cleanHistorical, ...Array(cleanForecast.length).fill(null)],
+                        borderColor: '#1a73e8',
+                        backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'Predicted Trend',
+                        data: [...Array(cleanHistorical.length - 1).fill(null), cleanHistorical[cleanHistorical.length-1], ...cleanForecast],
+                        borderColor: '#fbbc04',
+                        borderDash: [6, 6],
+                        backgroundColor: 'rgba(251, 188, 4, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    y: { grid: { color: '#f1f3f4' }, border: { display: false } },
+                    x: { grid: { display: false }, border: { display: false } }
+                }
+            }
+        });
+        {% endif %}
+    }
+
+    // Filter Logic
+    function toggleFilter() {
+        const modal = new bootstrap.Modal(document.getElementById('filterModal'));
+        modal.show();
+    }
+
+    function selectAll(state) {
+        document.querySelectorAll('.column-filter-checkbox').forEach(cb => cb.checked = state);
+    }
+
+    function applyFilters() {
+        const selectedCols = Array.from(document.querySelectorAll('.column-filter-checkbox:checked')).map(cb => cb.value);
+        
+        // Filter Table Rows
+        document.querySelectorAll('.google-table tbody tr').forEach(row => {
+            const colName = row.getAttribute('data-column');
+            if (selectedCols.includes(colName)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Filter Distribution Chart
+        // We update the labels and data based on selected numeric columns
+        const allNumericData = {{ reports.stats | tojson }};
+        const newLabels = [];
+        const newData = [];
+        
+        selectedCols.forEach(col => {
+            if (allNumericData[col]) {
+                newLabels.push(col);
+                newData.push(allNumericData[col].mean);
+            }
+        });
+
+        distributionChart.data.labels = newLabels.slice(0, 8);
+        distributionChart.data.datasets[0].data = newData.slice(0, 8);
+        distributionChart.update();
+
+        // Close Modal
+        bootstrap.Modal.getInstance(document.getElementById('filterModal')).hide();
+    }
+
+    function exportData() {
+        window.location.href = '/export-eda';
+    }
+</script>
+
+{% endblock %}

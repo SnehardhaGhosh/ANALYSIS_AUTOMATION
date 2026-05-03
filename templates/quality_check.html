@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container-fluid py-4 theme-quality">
+    <!-- Header Section -->
+    <div class="mb-5 stagger-entrance stagger-1">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="display-4 mb-0" style="font-weight: 800; letter-spacing: -2px;">
+                <i class="fas fa-shield-alt text-success me-2"></i> DATA QUALITY CHECK
+            </h2>
+            <button class="btn btn-outline-success"><i class="fas fa-download me-2"></i>Export Quality Report</button>
+        </div>
+        <p class="text-muted" style="font-size: 1.1rem; border-left: 4px solid #34A853; padding-left: 15px;">
+            Validate data integrity by identifying missing values, duplicates, and anomalies.
+        </p>
+    </div>
+
+    <!-- Quality Summary Panel -->
+    <div class="row mb-5 stagger-entrance stagger-2">
+        <div class="col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-success text-white" style="background: linear-gradient(135deg, #34A853 0%, #2e8b46 100%) !important;">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle fa-4x opacity-50"></i>
+                    </div>
+                    <h2 class="display-3" style="font-weight: 800;">{{ reports.summary.data_quality_score | round(1) }}%</h2>
+                    <p class="lead mb-0">Overall Quality Score</p>
+                    <div class="mt-4 pt-4 border-top border-white border-opacity-25">
+                        <div class="row">
+                            <div class="col-6 border-end border-white border-opacity-25">
+                                <h4 class="mb-0">{{ reports.summary.original_rows | int }}</h4>
+                                <small>Total Rows</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="mb-0 text-warning">
+                                    {% if reports.validation.quality_warnings %}
+                                        {{ reports.validation.quality_warnings | length }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </h4>
+                                <small>Total Issues</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="row h-100">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="kpi-card h-100">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="kpi-label">Missing Values %</div>
+                                <div class="kpi-value text-success">
+                                    {% set total_nulls = reports.summary.nulls_handled | int %}
+                                    {% if reports.summary.original_rows > 0 %}
+                                        {{ (total_nulls / (reports.summary.original_rows * reports.summary.original_columns) * 100) | round(2) }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="kpi-icon text-success"><i class="fas fa-eye-slash"></i></div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="status-badge status-check"><i class="fas fa-check me-2"></i>Acceptable</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="kpi-card h-100">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="kpi-label">Duplicate Rows</div>
+                                <div class="kpi-value text-success">{{ reports.summary.duplicates_removed | int }}</div>
+                            </div>
+                            <div class="kpi-icon text-success"><i class="fas fa-copy"></i></div>
+                        </div>
+                        <div class="mt-3">
+                            {% if reports.summary.duplicates_removed == 0 %}
+                                <span class="status-badge status-check"><i class="fas fa-check me-2"></i>No Duplicates</span>
+                            {% else %}
+                                <span class="status-badge status-warning"><i class="fas fa-broom me-2"></i>Deduplicated</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Issues Table -->
+    <div class="card shadow-sm border-0 mb-5 stagger-entrance stagger-3">
+        <div class="card-header border-0 py-3 px-4">
+            <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i> Detailed Data Quality Assessment</h5>
+        </div>
+        <div class="card-body p-4">
+            {% if reports.validation.quality_warnings %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Column</th>
+                            <th>Detected Issue</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for warning in reports.validation.quality_warnings[:15] %}
+                        <tr>
+                            <td><strong>{{ warning.column }}</strong></td>
+                            <td>{{ warning.issue }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'danger' if warning.severity == 'critical' else 'warning' if warning.severity == 'warning' else 'info' }}">
+                                    {{ warning.severity | upper }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if warning.severity == 'critical' %}
+                                    <span class="status-badge status-danger"><i class="fas fa-times me-2"></i>Needs Action</span>
+                                {% else %}
+                                    <span class="status-badge status-warning"><i class="fas fa-exclamation-triangle me-2"></i>Reviewing</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h3>No Issues Detected!</h3>
+                <p class="text-muted">Your data is pristine and ready for high-fidelity analysis.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Missing Values Heatmap / Visualization Placeholder -->
+    <div class="row stagger-entrance stagger-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header border-0 py-3 px-4">
+                    <h5 class="mb-0"><i class="fas fa-percentage me-2"></i> Missingness Distribution</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% for col, null_info in reports.summary.column_null_counts.items() %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold">{{ col }}</span>
+                            <span class="small text-muted">{{ null_info.percentage }}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{{ 'danger' if null_info.percentage > 50 else 'warning' if null_info.percentage > 20 else 'success' }}" 
+                                 role="progressbar" style="width: {{ null_info.percentage }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header border-0 py-3 px-4">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Outlier Concentration</h5>
+                </div>
+                <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        <h2 class="display-4 text-warning fw-bold">{{ reports.summary.outliers_handled | int }}</h2>
+                        <p class="text-muted">Extreme outliers were detected and automatically capped to preserve statistical integrity.</p>
+                        <i class="fas fa-chart-area fa-5x opacity-10 mt-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

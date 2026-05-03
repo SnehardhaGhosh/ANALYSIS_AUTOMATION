@@ -45,6 +45,16 @@ def clean_data(df):
     
     df = df.copy()
     
+    # Step 0: Robust NaN detection (Convert common placeholder strings to real NaNs)
+    # This handles "N/A", "null", "none", "", etc. before any other processing
+    nan_placeholders = ['n/a', 'na', 'null', 'none', '', 'nan', '-', 'unknown', '?', 'undefined']
+    for col in df.columns:
+        if df[col].dtype == object:
+            # Check for matches case-insensitively
+            mask = df[col].astype(str).str.strip().str.lower().isin(nan_placeholders)
+            if mask.any():
+                df.loc[mask, col] = np.nan
+    
     # Pre-cache all column types to avoid redundant inference (15% faster)
     if not _type_cache:
         cache_column_types(df)
@@ -143,6 +153,60 @@ def clean_data(df):
             'step': 'Clean String Formatting',
             'description': 'Removed leading/trailing whitespace from string columns',
             'fixes': string_fixes
+        })
+    
+    # Step 3.5: Professional Categorical Standardization (Industry Ready)
+    # This addresses the user's request for M -> Men, W -> Women, etc.
+    categorical_mapping = {
+        'm': 'Men',
+        'w': 'Women',
+        'f': 'Women',  # F usually means Female, which we standardize to Women for consistency
+        'male': 'Men',
+        'female': 'Women',
+        'man': 'Men',
+        'woman': 'Women',
+        'y': 'Yes',
+        'n': 'No',
+        'true': 'Yes',
+        'false': 'No'
+    }
+    
+    standardization_fixes = []
+    for col in df.columns:
+        if infer_column_type(df[col]) == 'string':
+            # 1. Standardize based on mapping (if standalone value)
+            # We use map with a fallback to the original value
+            original_series = df[col].astype(str).str.strip()
+            
+            # Count how many changes will be made
+            mapped_series = original_series.str.lower().map(categorical_mapping)
+            changes_mask = mapped_series.notna() & (mapped_series.str.lower() != original_series.str.lower())
+            
+            if changes_mask.any():
+                change_count = changes_mask.sum()
+                # Apply changes
+                df.loc[changes_mask, col] = mapped_series[changes_mask]
+                
+                standardization_fixes.append({
+                    'column': col,
+                    'issue': 'Inconsistent categories',
+                    'count': int(change_count),
+                    'description': f"Standardized abbreviations (e.g., M/W to Men/Women)"
+                })
+            
+            # 2. Apply Title Case for consistency in categories
+            # Only if it's likely a category (low cardinality or specific names)
+            unique_count = df[col].nunique()
+            if unique_count > 0 and (unique_count < 20 or any(k in col.lower() for k in ['gender', 'sex', 'category', 'status', 'type', 'name'])):
+                df[col] = df[col].astype(str).str.strip().str.title()
+                # Remove common Title Case failures like "N/A" -> "N/A" (already handled by NaN usually but good to be safe)
+                df[col] = df[col].replace({'Nan': np.nan, 'None': np.nan, 'Unknown': 'Unknown'})
+    
+    if standardization_fixes:
+        cleaning_report['steps'].append({
+            'step': 'Categorical Standardization',
+            'description': 'Standardized abbreviations and enforced Title Case for categories',
+            'fixes': standardization_fixes
         })
     
     # Step 4: Handle outliers in numeric columns using IQR method
@@ -332,7 +396,13 @@ def infer_column_type(col):
         
         # Try to detect numeric (coerce any type to numeric)
         try:
-            numeric_converted = pd.to_numeric(col_clean, errors='coerce')
+            # First, try to remove common numeric fluff (currency, commas)
+            if col.dtype == object:
+                sample = col.dropna().astype(str).str.replace(r'[$,% ]', '', regex=True)
+                numeric_converted = pd.to_numeric(sample, errors='coerce')
+            else:
+                numeric_converted = pd.to_numeric(col, errors='coerce')
+                
             numeric_count = numeric_converted.notna().sum()
             if numeric_count / len(col_clean) > 0.8:  # 80% are numeric
                 return 'numeric'

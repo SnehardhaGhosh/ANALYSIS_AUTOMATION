@@ -1,13 +1,12 @@
-def build_prompt(user_query, columns, full_data, rule_based_result=None):
+def build_prompt(user_query, columns, data_profile, rule_based_result=None):
     context = f"""
-DATASET INFORMATION:
+DATASET PROFILE:
 Columns: {', '.join(columns)}
 
-Full Dataset:
-{full_data}"""
+{data_profile}"""
     
     if rule_based_result:
-        context += f"\n\nCalculated Results: {rule_based_result}"
+        context += f"\n\nDIRECT CALCULATION RESULT (Highly Accurate): {rule_based_result}"
     
     return f"""
 You are a professional data analyst. Answer this question in a natural, conversational way like you're explaining to a colleague.

@@ -595,6 +595,114 @@ def processing_summary():
         return "Error loading processing summary", 500
 
 
+# 🛡️ DATA QUALITY CHECK PAGE
+@app.route('/quality-check')
+def quality_check():
+    if 'user_id' not in session or 'dataset' not in session:
+        return redirect('/login')
+    
+    try:
+        reports = session.get('processing_reports', {})
+        validation_report = session.get('validation_report', {})
+        cleaning_report = session.get('cleaning_report', {})
+        
+        full_reports = {
+            'summary': reports,
+            'validation': validation_report,
+            'cleaning': cleaning_report,
+        }
+        
+        return render_template(
+            'quality_check.html',
+            reports=full_reports
+        )
+    except Exception as e:
+        logger.error(f"Error loading quality check: {str(e)}")
+        return "Error loading quality check", 500
+
+
+# 📊 EXPLORATORY DATA ANALYSIS (EDA) PAGE
+@app.route('/eda')
+def eda():
+    if 'user_id' not in session or 'dataset' not in session:
+        return redirect('/login')
+    
+    try:
+        reports = session.get('processing_reports', {})
+        summary_stats = session.get('summary_stats_cached', {})
+        
+        # Performance: Check cache for EDA specific results
+        eda_cache = session.get('eda_cache', {})
+        
+        if eda_cache and eda_cache.get('dataset_path') == session.get('dataset'):
+            full_reports = eda_cache['full_reports']
+            all_columns = eda_cache['all_columns']
+        else:
+            # Load data only if cache is missing or dataset changed
+            df = pd.read_csv(session.get('cleaned_dataset', session['dataset']))
+            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+            all_columns = df.columns.tolist()
+            
+            # Calculate correlations
+            corr_matrix = df[numeric_cols].corr().to_dict() if len(numeric_cols) > 1 else {}
+            
+            # Calculate predictive trends
+            from modules.visualizations import get_predictive_trends
+            predictive_data = get_predictive_trends(df)
+            
+            full_reports = {
+                'summary': reports,
+                'stats': summary_stats,
+                'correlations': corr_matrix,
+                'numeric_columns': numeric_cols,
+                'predictive_trends': predictive_data
+            }
+            
+            # Update cache
+            session['eda_cache'] = {
+                'dataset_path': session.get('dataset'),
+                'full_reports': full_reports,
+                'all_columns': all_columns
+            }
+        
+        return render_template(
+            'eda.html',
+            reports=full_reports,
+            columns=all_columns
+        )
+    except Exception as e:
+        logger.error(f"Error loading EDA: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return "Error loading EDA", 500
+
+
+# 📥 EXPORT EDA REPORT API
+@app.route('/export-eda')
+def export_eda():
+    if 'user_id' not in session or 'dataset' not in session:
+        return redirect('/login')
+        
+    try:
+        summary_stats = session.get('summary_stats_cached', {})
+        if not summary_stats:
+            return "No statistics found to export", 404
+            
+        # Convert stats dict to DataFrame for easy CSV export
+        export_df = pd.DataFrame(summary_stats).T
+        export_df.index.name = 'Column'
+        
+        # Save to temporary CSV
+        export_path = os.path.join(Config.UPLOAD_FOLDER, f"eda_export_{session['user_id']}.csv")
+        export_df.to_csv(export_path)
+        
+        from flask import send_file
+        return send_file(export_path, as_attachment=True, download_name="statistical_intelligence_report.csv")
+    except Exception as e:
+        logger.error(f"Error exporting EDA: {str(e)}")
+        return "Error exporting report", 500
+
+
 # 🤖 AI CHAT PAGE
 @app.route('/chat')
 def chat():
@@ -1004,10 +1112,16 @@ def ask():
         except Exception as e:
             logger.error(f"Rule-based query error for user {session['user_id']}: {str(e)}")
 
-        # Step 2: Pass FULL dataset to AI for accurate calculations
+        # Step 2: Pass a smart summary and sample to the AI (prevents context overflow)
         try:
-            full_dataset_str = df.to_string()
-            prompt = build_prompt(query, df.columns.tolist(), full_dataset_str, str(rule_result))
+            # Create a comprehensive but concise data profile
+            data_sample = df.head(10).to_string()
+            data_stats = df.describe(include='all').to_string()
+            data_summary = f"Rows: {len(df)}, Columns: {len(df.columns)}\n\n"
+            data_summary += f"STATISTICAL SUMMARY:\n{data_stats}\n\n"
+            data_summary += f"DATA SAMPLE (FIRST 10 ROWS):\n{data_sample}"
+            
+            prompt = build_prompt(query, df.columns.tolist(), data_summary, str(rule_result))
             
             # Determine available AI models and try them in order
             available_models = []

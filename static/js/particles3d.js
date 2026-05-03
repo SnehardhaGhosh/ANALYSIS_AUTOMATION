@@ -8,10 +8,10 @@ let mouseX = 0, mouseY = 0;
 
 const characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const palette = [
-    0x4285F4, // Google Blue
-    0xEA4335, // Google Red
-    0xFBBC05, // Google Yellow
-    0x34A853, // Google Green
+    0xAECBFA, // Light Google Blue (Pastel)
+    0xF28B82, // Light Google Red (Pastel)
+    0xFDE293, // Light Google Yellow (Pastel)
+    0xCEEAD6, // Light Google Green (Pastel)
 ];
 
 function createTextTexture(char, color) {
@@ -22,13 +22,10 @@ function createTextTexture(char, color) {
     
     const hexColor = '#' + color.toString(16).padStart(6, '0');
     ctx.fillStyle = hexColor;
-    ctx.font = 'bold 70px "Inter", sans-serif';
+    ctx.font = '900 100px "Inter", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // Softer glow for light theme
-    ctx.shadowColor = hexColor;
-    ctx.shadowBlur = 15;
     ctx.fillText(char, 64, 64);
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -59,7 +56,7 @@ function init() {
         const material = new THREE.SpriteMaterial({ 
             map: texture,
             transparent: true,
-            opacity: Math.random() * 0.25 + 0.05 // Subtle tokens
+            opacity: Math.random() * 0.1 + 0.05 // Significantly reduced opacity for background feel
         });
 
         const sprite = new THREE.Sprite(material);
@@ -68,7 +65,7 @@ function init() {
         sprite.position.y = Math.random() * 5000 - 2500;
         sprite.position.z = Math.random() * 5000 - 2500;
         
-        const scale = Math.random() * 50 + 20;
+        const scale = Math.random() * 80 + 80; // Larger characters
         sprite.scale.set(scale, scale, 1);
         
         sprite.userData = {

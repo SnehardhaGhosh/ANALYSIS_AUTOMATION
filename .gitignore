@@ -25,6 +25,8 @@ instance/
 uploads/
 cleaned_data/
 *.csv
+*.xlsx
+*.docx
 
 # 🧪 Test / temp files
 tmp_*.py
