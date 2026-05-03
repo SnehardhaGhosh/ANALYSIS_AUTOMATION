@@ -23,4 +23,4 @@ class Config:
     DEFAULT_MODEL = "groq"   # options: groq, gemini, hf
 
     # File limits
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+    MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB
