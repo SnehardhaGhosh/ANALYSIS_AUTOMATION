@@ -4,7 +4,7 @@
 
 A modern, production-ready Flask web application that allows users to upload data files (CSV, Excel, JSON) and interact with an AI-powered data analysis system. The application provides a sequential workflow from login to data analysis with a beautiful, responsive UI.
 
-## Recent Updates (March 22, 2026) - By Soumyadeep Sarkar
+## Recent Updates (March 22, 2026) - By Snehardha & Soumyadeep
 
 ### 🔄 Session Persistence & Live Website Behavior
 - **Added Flask-Session**: Implemented filesystem-based session storage for persistent user sessions across server restarts and page refreshes
