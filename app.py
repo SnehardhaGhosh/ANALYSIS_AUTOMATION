@@ -63,8 +63,8 @@ logger = logging.getLogger(__name__)
 
 # Modules
 try:
-    from modules.db import init_db, save_chat, get_chat_history
-    from modules.auth import create_user, verify_user
+    from modules.db import init_db, save_chat, get_chat_history, verify_otp
+    from modules.auth import create_user, verify_user, generate_and_send_otp
     from modules.file_handler import save_file, load_file
     from modules.data_cleaning import clean_data, get_cleaning_report, cache_column_types, clear_cache
     from modules.data_validation import validate_data, check_data_quality
@@ -136,11 +136,16 @@ def login():
             user = verify_user(email, password)
 
             if user:
-                session['user_id']    = user[0]
-                session['username']   = user[1]   # username column
-                session['user_email'] = user[2]   # email column
-                logger.info(f"User {email} logged in successfully")
-                return redirect('/dashboard')
+                # Credentials correct → generate & send OTP
+                success = generate_and_send_otp(email, user[1])
+                if success:
+                    session['otp_email'] = email
+                    session['otp_user_id'] = user[0]
+                    session['otp_username'] = user[1]
+                    logger.info(f"OTP sent to {email}")
+                    return redirect('/verify-otp')
+                else:
+                    return render_template('login.html', error='Failed to send OTP. Please check your email configuration.')
             else:
                 logger.warning(f"Failed login attempt for email: {email}")
                 return render_template('login.html', error='Invalid email or password')
@@ -151,6 +156,51 @@ def login():
         return render_template('login.html', error='An error occurred during login')
 
 
+# 🔢 OTP VERIFICATION
+@app.route('/verify-otp', methods=['GET', 'POST'])
+def verify_otp_page():
+    if 'otp_email' not in session:
+        return redirect('/login')
+
+    if request.method == 'POST':
+        otp_input = ''.join([
+            request.form.get('otp1', ''),
+            request.form.get('otp2', ''),
+            request.form.get('otp3', ''),
+            request.form.get('otp4', ''),
+            request.form.get('otp5', ''),
+            request.form.get('otp6', ''),
+        ]).strip()
+
+        email = session.get('otp_email')
+        is_valid = verify_otp(email, otp_input)
+
+        if is_valid:
+            session['user_id'] = session.pop('otp_user_id')
+            session['username'] = session.pop('otp_username')
+            session['user_email'] = email
+            session.pop('otp_email', None)
+            logger.info(f"User {email} verified OTP and logged in")
+            return redirect('/dashboard')
+        else:
+            return render_template('verify_otp.html',
+                                   email=email,
+                                   error='Invalid or expired OTP. Please try again.')
+
+    return render_template('verify_otp.html', email=session.get('otp_email'))
+
+
+# 🔁 RESEND OTP
+@app.route('/resend-otp', methods=['POST'])
+def resend_otp():
+    email = session.get('otp_email')
+    username = session.get('otp_username', 'User')
+    if not email:
+        return redirect('/login')
+    generate_and_send_otp(email, username)
+    return render_template('verify_otp.html', email=email, success='A new OTP has been sent to your email!')
+
+
 # 📝 REGISTER
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -159,12 +209,16 @@ def register():
             username = request.form.get('username', '').strip()
             email = request.form.get('email', '').strip()
             password = request.form.get('password', '').strip()
+            confirm = request.form.get('confirm_password', '').strip()
 
             if not all([username, email, password]):
                 return render_template('register.html', error='All fields are required')
 
-            if len(password) < 6:
-                return render_template('register.html', error='Password must be at least 6 characters')
+            if password != confirm:
+                return render_template('register.html', error='Passwords do not match')
+
+            if len(password) < 8:
+                return render_template('register.html', error='Password must be at least 8 characters')
 
             create_user(username, email, password)
             logger.info(f"New user registered: {email}")

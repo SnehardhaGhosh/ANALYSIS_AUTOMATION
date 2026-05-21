@@ -1,57 +1,251 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-lg">
-            <div class="card-body p-5">
-                <h2 class="card-title text-center mb-4">
-                    <i class="fas fa-user-plus text-primary"></i> Register
-                </h2>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-                {% if error %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle"></i> {{ error }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endif %}
+<style>
+  body {
+    font-family: 'Outfit', sans-serif !important;
+    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: ""; position: fixed; top: -20%; left: -10%;
+    width: 500px; height: 500px;
+    background: rgba(16,185,129,0.2); border-radius: 50%;
+    filter: blur(80px); z-index: 0;
+    animation: drift 18s infinite alternate ease-in-out;
+  }
+  body::after {
+    content: ""; position: fixed; bottom: -15%; right: -10%;
+    width: 600px; height: 600px;
+    background: rgba(59,130,246,0.2); border-radius: 50%;
+    filter: blur(80px); z-index: 0;
+    animation: drift 22s infinite alternate-reverse ease-in-out;
+  }
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(80px, 60px) scale(1.15); }
+  }
+  .auth-wrapper {
+    position: relative; z-index: 1;
+    min-height: calc(100vh - 80px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .auth-card {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(31,38,135,0.12), 0 1px 0 rgba(255,255,255,0.8) inset;
+    padding: 3rem 2.5rem;
+    width: 100%; max-width: 460px;
+    animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  @keyframes slideUp {
+    from { opacity:0; transform:translateY(30px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .brand-icon {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg,#10b981,#3b82f6);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 10px 30px rgba(16,185,129,0.35);
+  }
+  .brand-icon i { font-size: 1.75rem; color: white; }
+  .auth-title {
+    font-size: 1.85rem; font-weight: 800;
+    background: linear-gradient(135deg,#1e293b,#10b981);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-align: center; letter-spacing: -0.5px; margin-bottom: 0.4rem;
+  }
+  .auth-subtitle { text-align:center; color:#64748b; font-size:0.9rem; margin-bottom:2rem; }
 
-                <form method="POST" action="/register">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user"></i> Username
-                        </label>
-                        <input type="text" class="form-control form-control-lg" id="username" name="username" placeholder="Choose a username" required>
-                    </div>
+  .field-group { position:relative; margin-bottom:1.15rem; }
+  .field-group label {
+    font-size:0.8rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+    color:#475569; margin-bottom:0.5rem;
+    display:flex; align-items:center; gap:0.4rem;
+  }
+  .field-group .form-control {
+    background: rgba(255,255,255,0.6);
+    border: 1.5px solid rgba(203,213,225,0.8);
+    border-radius: 14px;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    font-size: 0.95rem; color: #1e293b;
+    transition: all 0.25s; height: auto;
+  }
+  .field-group .form-control:focus {
+    background: rgba(255,255,255,0.95);
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16,185,129,0.12);
+    outline: none;
+  }
+  .field-icon { position:absolute; left:1rem; bottom:13px; color:#94a3b8; pointer-events:none; transition:color 0.2s; }
+  .field-group:focus-within .field-icon { color:#10b981; }
+  .toggle-pw { position:absolute; right:1rem; bottom:13px; cursor:pointer; color:#94a3b8; transition:color 0.2s; border:none; background:none; padding:0; }
+  .toggle-pw:hover { color:#10b981; }
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label">
-                            <i class="fas fa-envelope"></i> Email
-                        </label>
-                        <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="Enter your email" required>
-                    </div>
+  /* Password strength */
+  .strength-wrap { margin-top: 6px; }
+  .strength-bar-bg { height:5px; background:#e2e8f0; border-radius:4px; overflow:hidden; }
+  .strength-bar { height:100%; border-radius:4px; width:0%; transition: width 0.4s, background 0.4s; }
+  .strength-label { font-size:0.75rem; font-weight:600; margin-top:4px; }
 
-                    <div class="mb-4">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock"></i> Password
-                        </label>
-                        <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="At least 6 characters" required minlength="6">
-                    </div>
+  .btn-auth {
+    width:100%; padding:0.85rem;
+    background: linear-gradient(135deg,#10b981,#3b82f6);
+    border:none; border-radius:14px;
+    color:white; font-size:1rem; font-weight:700;
+    box-shadow:0 8px 24px rgba(16,185,129,0.35);
+    transition:all 0.25s; cursor:pointer; margin-top:0.5rem;
+  }
+  .btn-auth:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(16,185,129,0.45); }
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
-                        <i class="fas fa-user-plus"></i> Create Account
-                    </button>
-                </form>
+  .auth-alert { border-radius:14px; padding:0.85rem 1rem; font-size:0.875rem; font-weight:500; display:flex; align-items:center; gap:0.6rem; margin-bottom:1.25rem; border:none; animation:fadeIn 0.3s ease; }
+  .auth-alert-danger { background:rgba(239,68,68,0.1); color:#b91c1c; border-left:4px solid #ef4444; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:translateY(0);} }
 
-                <div class="text-center">
-                    <p class="mb-0">Already have an account?</p>
-                    <a href="/login" class="btn btn-outline-primary mt-2">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </a>
-                </div>
-            </div>
-        </div>
+  .requirements { list-style:none; padding:0; margin-top:0.6rem; }
+  .requirements li { font-size:0.78rem; color:#94a3b8; display:flex; align-items:center; gap:0.4rem; margin-bottom:3px; transition:color 0.2s; }
+  .requirements li.valid { color:#10b981; }
+  .requirements li i { font-size:0.65rem; }
+
+  .auth-footer { text-align:center; font-size:0.875rem; color:#64748b; margin-top:1.5rem; }
+  .auth-footer a { color:#10b981; font-weight:700; text-decoration:none; }
+  .auth-footer a:hover { color:#3b82f6; }
+</style>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="brand-icon"><i class="fas fa-user-plus"></i></div>
+    <h1 class="auth-title">Create Account</h1>
+    <p class="auth-subtitle">Join the AI Data Analyst Platform</p>
+
+    {% if error %}
+    <div class="auth-alert auth-alert-danger">
+      <i class="fas fa-exclamation-circle"></i> {{ error }}
     </div>
+    {% endif %}
+
+    <form method="POST" action="/register" id="registerForm">
+
+      <div class="field-group">
+        <label><i class="fas fa-user"></i> Full Name</label>
+        <i class="fas fa-user field-icon"></i>
+        <input type="text" class="form-control" name="username"
+               placeholder="Your display name" required autocomplete="name">
+      </div>
+
+      <div class="field-group">
+        <label><i class="fas fa-envelope"></i> Email Address</label>
+        <i class="fas fa-envelope field-icon"></i>
+        <input type="email" class="form-control" name="email"
+               placeholder="you@example.com" required autocomplete="email">
+      </div>
+
+      <div class="field-group">
+        <label><i class="fas fa-lock"></i> Password</label>
+        <i class="fas fa-lock field-icon"></i>
+        <input type="password" class="form-control" id="password" name="password"
+               placeholder="Create a strong password" required oninput="checkStrength(this.value)">
+        <button type="button" class="toggle-pw" onclick="togglePw('password',this)">
+          <i class="fas fa-eye"></i>
+        </button>
+        <div class="strength-wrap">
+          <div class="strength-bar-bg"><div class="strength-bar" id="strengthBar"></div></div>
+          <p class="strength-label" id="strengthLabel" style="color:#94a3b8;"></p>
+        </div>
+        <ul class="requirements" id="requirements">
+          <li id="req-len"><i class="fas fa-circle"></i> At least 8 characters</li>
+          <li id="req-upper"><i class="fas fa-circle"></i> One uppercase letter</li>
+          <li id="req-num"><i class="fas fa-circle"></i> One number</li>
+        </ul>
+      </div>
+
+      <div class="field-group">
+        <label><i class="fas fa-shield-alt"></i> Confirm Password</label>
+        <i class="fas fa-shield-alt field-icon"></i>
+        <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+               placeholder="Re-enter your password" required oninput="checkMatch()">
+        <button type="button" class="toggle-pw" onclick="togglePw('confirm_password',this)">
+          <i class="fas fa-eye"></i>
+        </button>
+        <p id="matchLabel" style="font-size:0.75rem;margin-top:4px;font-weight:600;"></p>
+      </div>
+
+      <button type="submit" class="btn-auth" id="submitBtn">
+        <span id="btnText"><i class="fas fa-user-plus me-2"></i>Create Account</span>
+        <span id="btnSpinner" class="d-none">
+          <span class="spinner-border spinner-border-sm me-2"></span>Creating...
+        </span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in →</a>
+    </div>
+  </div>
 </div>
+
+<script>
+  function togglePw(id, btn) {
+    const f = document.getElementById(id);
+    const i = btn.querySelector('i');
+    if(f.type==='password'){f.type='text';i.classList.replace('fa-eye','fa-eye-slash');}
+    else{f.type='password';i.classList.replace('fa-eye-slash','fa-eye');}
+  }
+
+  function checkStrength(val) {
+    const bar = document.getElementById('strengthBar');
+    const lbl = document.getElementById('strengthLabel');
+    const reqLen = document.getElementById('req-len');
+    const reqUpper = document.getElementById('req-upper');
+    const reqNum = document.getElementById('req-num');
+
+    const hasLen = val.length >= 8;
+    const hasUpper = /[A-Z]/.test(val);
+    const hasNum = /[0-9]/.test(val);
+    const hasSpecial = /[^A-Za-z0-9]/.test(val);
+
+    reqLen.classList.toggle('valid', hasLen);
+    reqUpper.classList.toggle('valid', hasUpper);
+    reqNum.classList.toggle('valid', hasNum);
+
+    const score = [hasLen, hasUpper, hasNum, hasSpecial].filter(Boolean).length;
+    const configs = [
+      {pct:'25%', color:'#ef4444', label:'Weak'},
+      {pct:'50%', color:'#f59e0b', label:'Fair'},
+      {pct:'75%', color:'#3b82f6', label:'Good'},
+      {pct:'100%',color:'#10b981', label:'Strong 🔒'}
+    ];
+    const c = configs[Math.max(0, score - 1)] || configs[0];
+    bar.style.width = val.length ? c.pct : '0%';
+    bar.style.background = c.color;
+    lbl.textContent = val.length ? c.label : '';
+    lbl.style.color = c.color;
+  }
+
+  function checkMatch() {
+    const pw = document.getElementById('password').value;
+    const cp = document.getElementById('confirm_password').value;
+    const lbl = document.getElementById('matchLabel');
+    if (!cp) { lbl.textContent = ''; return; }
+    if (pw === cp) { lbl.textContent = '✓ Passwords match'; lbl.style.color = '#10b981'; }
+    else { lbl.textContent = '✗ Passwords do not match'; lbl.style.color = '#ef4444'; }
+  }
+
+  document.getElementById('registerForm').addEventListener('submit', function() {
+    document.getElementById('btnText').classList.add('d-none');
+    document.getElementById('btnSpinner').classList.remove('d-none');
+  });
+</script>
 
 {% endblock %}

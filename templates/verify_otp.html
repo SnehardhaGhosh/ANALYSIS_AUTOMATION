@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@600&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    font-family: 'Outfit', sans-serif !important;
+    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+    min-height: 100vh; position: relative; overflow-x: hidden;
+  }
+  body::before {
+    content:""; position:fixed; top:-20%; left:-10%;
+    width:500px; height:500px; background:rgba(245,158,11,0.2);
+    border-radius:50%; filter:blur(80px); z-index:0;
+    animation:drift 18s infinite alternate ease-in-out;
+  }
+  body::after {
+    content:""; position:fixed; bottom:-15%; right:-10%;
+    width:600px; height:600px; background:rgba(59,130,246,0.2);
+    border-radius:50%; filter:blur(80px); z-index:0;
+    animation:drift 22s infinite alternate-reverse ease-in-out;
+  }
+  @keyframes drift { from{transform:translate(0,0)scale(1);} to{transform:translate(80px,60px)scale(1.15);} }
+
+  .auth-wrapper {
+    position:relative; z-index:1;
+    min-height:calc(100vh - 80px);
+    display:flex; align-items:center; justify-content:center;
+    padding:2rem 1rem;
+  }
+  .auth-card {
+    background:rgba(255,255,255,0.78);
+    backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    border:1px solid rgba(255,255,255,0.65);
+    border-radius:28px;
+    box-shadow:0 20px 60px rgba(31,38,135,0.12),0 1px 0 rgba(255,255,255,0.8) inset;
+    padding:3rem 2.5rem;
+    width:100%; max-width:440px;
+    animation:slideUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  @keyframes slideUp { from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
+
+  .brand-icon {
+    width:72px; height:72px;
+    background:linear-gradient(135deg,#f59e0b,#ef4444);
+    border-radius:20px;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 1.5rem;
+    box-shadow:0 10px 30px rgba(245,158,11,0.4);
+    animation:pulse 2.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{box-shadow:0 10px 30px rgba(245,158,11,0.4);} 50%{box-shadow:0 10px 40px rgba(245,158,11,0.65);} }
+  .brand-icon i { font-size:1.75rem; color:white; }
+
+  .auth-title {
+    font-size:1.85rem; font-weight:800;
+    background:linear-gradient(135deg,#1e293b,#f59e0b);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    text-align:center; letter-spacing:-0.5px; margin-bottom:0.4rem;
+  }
+  .auth-subtitle { text-align:center; color:#64748b; font-size:0.9rem; margin-bottom:0.5rem; }
+  .email-badge {
+    background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3);
+    border-radius:30px; padding:0.4rem 1rem;
+    font-size:0.82rem; color:#92400e; font-weight:600;
+    display:inline-flex; align-items:center; gap:0.4rem;
+    margin:0 auto 2rem; text-align:center;
+    display:flex; width:fit-content; margin:0 auto 2rem;
+  }
+
+  /* OTP Boxes */
+  .otp-boxes { display:flex; gap:0.6rem; justify-content:center; margin-bottom:2rem; }
+  .otp-box {
+    width:54px; height:64px;
+    text-align:center; font-size:1.6rem; font-weight:800;
+    font-family:'Source Code Pro', monospace;
+    background:rgba(255,255,255,0.7);
+    border:2px solid rgba(203,213,225,0.8);
+    border-radius:16px; color:#1e293b;
+    transition:all 0.2s; outline:none;
+  }
+  .otp-box:focus {
+    border-color:#f59e0b;
+    box-shadow:0 0 0 4px rgba(245,158,11,0.15);
+    background:rgba(255,255,255,1);
+    transform:translateY(-2px);
+  }
+  .otp-box.filled { border-color:#10b981; background:rgba(16,185,129,0.08); }
+
+  /* Timer */
+  .otp-timer {
+    text-align:center; font-size:0.85rem; color:#64748b;
+    margin-bottom:1.5rem; display:flex; align-items:center;
+    justify-content:center; gap:0.5rem;
+  }
+  #timerCount {
+    font-weight:800; color:#f59e0b;
+    font-family:'Source Code Pro', monospace;
+    font-size:1rem;
+    min-width:40px; display:inline-block;
+  }
+  #timerCount.expired { color:#ef4444; }
+
+  .btn-auth {
+    width:100%; padding:0.85rem;
+    background:linear-gradient(135deg,#f59e0b,#ef4444);
+    border:none; border-radius:14px;
+    color:white; font-size:1rem; font-weight:700;
+    box-shadow:0 8px 24px rgba(245,158,11,0.35);
+    transition:all 0.25s; cursor:pointer;
+  }
+  .btn-auth:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(245,158,11,0.45); }
+  .btn-auth:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+  .btn-resend {
+    display:block; width:100%; margin-top:1rem;
+    background:transparent; border:1.5px solid rgba(203,213,225,0.8);
+    border-radius:14px; padding:0.7rem;
+    font-size:0.875rem; font-weight:600; color:#64748b;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .btn-resend:hover:not(:disabled) {
+    border-color:#3b82f6; color:#3b82f6;
+    background:rgba(59,130,246,0.05);
+  }
+  .btn-resend:disabled { opacity:0.45; cursor:not-allowed; }
+
+  .auth-alert { border-radius:14px; padding:0.85rem 1rem; font-size:0.875rem; font-weight:500; display:flex; align-items:center; gap:0.6rem; margin-bottom:1.25rem; border:none; animation:fadeIn 0.3s ease; }
+  .auth-alert-danger { background:rgba(239,68,68,0.1); color:#b91c1c; border-left:4px solid #ef4444; }
+  .auth-alert-success { background:rgba(16,185,129,0.1); color:#047857; border-left:4px solid #10b981; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:translateY(0);} }
+
+  .back-link { text-align:center; font-size:0.875rem; color:#64748b; margin-top:1.5rem; }
+  .back-link a { color:#3b82f6; font-weight:700; text-decoration:none; }
+</style>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="brand-icon"><i class="fas fa-shield-alt"></i></div>
+    <h1 class="auth-title">Verify Your Identity</h1>
+    <p class="auth-subtitle">Enter the 6-digit OTP sent to</p>
+    <div class="email-badge">
+      <i class="fas fa-envelope"></i> {{ email }}
+    </div>
+
+    {% if error %}
+    <div class="auth-alert auth-alert-danger">
+      <i class="fas fa-times-circle"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="auth-alert auth-alert-success">
+      <i class="fas fa-check-circle"></i> {{ success }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/verify-otp" id="otpForm">
+      <div class="otp-boxes">
+        <input class="otp-box" type="text" name="otp1" id="otp1" maxlength="1" inputmode="numeric" pattern="[0-9]" required autocomplete="off">
+        <input class="otp-box" type="text" name="otp2" id="otp2" maxlength="1" inputmode="numeric" pattern="[0-9]" required autocomplete="off">
+        <input class="otp-box" type="text" name="otp3" id="otp3" maxlength="1" inputmode="numeric" pattern="[0-9]" required autocomplete="off">
+        <input class="otp-box" type="text" name="otp4" id="otp4" maxlength="1" inputmode="numeric" pattern="[0-9]" required autocomplete="off">
+        <input class="otp-box" type="text" name="otp5" id="otp5" maxlength="1" inputmode="numeric" pattern="[0-9]" required autocomplete="off">
+        <input class="otp-box" type="text" name="otp6" id="otp6" maxlength="1" inputmode="numeric" pattern="[0-9]" required autocomplete="off">
+      </div>
+
+      <div class="otp-timer">
+        <i class="fas fa-clock"></i>
+        Code expires in <span id="timerCount">10:00</span>
+      </div>
+
+      <button type="submit" class="btn-auth" id="verifyBtn">
+        <i class="fas fa-check-circle me-2"></i>Verify & Sign In
+      </button>
+    </form>
+
+    <form method="POST" action="/resend-otp">
+      <button type="submit" class="btn-resend" id="resendBtn" disabled>
+        <i class="fas fa-paper-plane me-2"></i>Resend OTP <span id="resendTimer">(wait 60s)</span>
+      </button>
+    </form>
+
+    <div class="back-link">
+      <a href="/login"><i class="fas fa-arrow-left me-1"></i>Back to Login</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- OTP Box Auto-advance & Backspace ----
+  const boxes = document.querySelectorAll('.otp-box');
+  boxes.forEach((box, idx) => {
+    box.addEventListener('input', function() {
+      const val = this.value.replace(/\D/g,'');
+      this.value = val;
+      if (val) {
+        this.classList.add('filled');
+        if (idx < boxes.length - 1) boxes[idx+1].focus();
+        // Auto-submit if all filled
+        if ([...boxes].every(b => b.value)) {
+          document.getElementById('otpForm').submit();
+        }
+      } else {
+        this.classList.remove('filled');
+      }
+    });
+
+    box.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && !this.value && idx > 0) {
+        boxes[idx-1].focus();
+        boxes[idx-1].value = '';
+        boxes[idx-1].classList.remove('filled');
+      }
+    });
+
+    // Handle paste of full OTP
+    box.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pasted = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+      if (pasted.length === 6) {
+        boxes.forEach((b, i) => {
+          b.value = pasted[i] || '';
+          b.classList.toggle('filled', !!pasted[i]);
+        });
+        document.getElementById('otpForm').submit();
+      }
+    });
+  });
+  boxes[0].focus();
+
+  // ---- 10-minute Expiry Timer ----
+  let totalSeconds = 10 * 60;
+  const timerEl = document.getElementById('timerCount');
+  const timerInterval = setInterval(function() {
+    totalSeconds--;
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      timerEl.textContent = 'Expired';
+      timerEl.classList.add('expired');
+      document.getElementById('verifyBtn').disabled = true;
+    } else {
+      const m = Math.floor(totalSeconds / 60).toString().padStart(2,'0');
+      const s = (totalSeconds % 60).toString().padStart(2,'0');
+      timerEl.textContent = m + ':' + s;
+    }
+  }, 1000);
+
+  // ---- 60-second Resend Cooldown ----
+  let resendSeconds = 60;
+  const resendBtn = document.getElementById('resendBtn');
+  const resendTimerEl = document.getElementById('resendTimer');
+  const resendInterval = setInterval(function() {
+    resendSeconds--;
+    if (resendSeconds <= 0) {
+      clearInterval(resendInterval);
+      resendBtn.disabled = false;
+      resendTimerEl.textContent = '';
+    } else {
+      resendTimerEl.textContent = `(wait ${resendSeconds}s)`;
+    }
+  }, 1000);
+</script>
+
+{% endblock %}
