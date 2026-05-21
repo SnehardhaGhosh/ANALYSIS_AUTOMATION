@@ -7,455 +7,398 @@ logger = logging.getLogger(__name__)
 
 def generate_statistical_intelligence(df):
     """
-    Generates an enhanced decision-focused explanation layer for the dataset.
+    Generates a deeply enhanced, non-technical business intelligence layer.
+    Translates raw statistics into actionable business insights.
     """
     try:
         numeric_df = df.select_dtypes(include=[np.number])
         
-        # 1. Statistical Summary
-        summary = get_summary_text(df, numeric_df)
+        # 1. Executive Summary
+        summary = get_executive_summary(df, numeric_df)
         
-        # 2. Key Drivers of Change
-        key_drivers = get_key_drivers(df, numeric_df)
+        # 2. Dataset Health Intelligence
+        health = get_health_metrics(df)
         
-        # 3. Data Quality Score
-        quality_score = get_data_quality_score(df)
+        # 3. Correlation Intelligence (Key Drivers)
+        correlations = get_business_correlations(df, numeric_df)
         
-        # 4. Distribution Analysis
-        dist_analysis = get_distribution_analysis(numeric_df)
+        # 4. Distribution Analysis (Human Readable)
+        distributions = get_human_distributions(numeric_df)
         
-        # 5. Statistical Flags
-        stat_flags = get_stat_flags(numeric_df)
+        # 5. Smart Insight Engine (Pattern Detection)
+        patterns = get_smart_patterns(numeric_df, correlations)
         
-        # 6. Confidence Level
-        confidence = get_confidence_level(df, numeric_df)
+        # 6. Risk Intelligence
+        risk = get_risk_intelligence(numeric_df, health)
         
-        # 7. Business Translation Layer
-        business_translation = get_business_translation(df, stat_flags, key_drivers)
+        # 7. AI Recommendations
+        recommendations = get_ai_recommendations(patterns, risk, correlations)
         
-        # 8. Comparison Insights & Timeline (Combined/Enhanced)
-        comparison, timeline_data = get_enhanced_insights(df)
+        # 8. Forecast & Prediction Layer
+        forecast = get_forecast_predictions(df, numeric_df)
         
-        # 9. Risk Indicator
-        risk = get_risk_indicator(stat_flags, quality_score)
+        # 9. Dynamic Column Insights (for interactivity)
+        column_insights = get_interactive_column_insights(numeric_df, correlations)
         
-        # 10. Decision Suggestions (Enhanced with Priority/Impact)
-        decisions = get_enhanced_decisions(stat_flags, key_drivers, quality_score, confidence)
-        
-        # 11. Final Takeaway
-        takeaway = get_final_takeaway(risk, confidence, decisions)
-        
-        # 12. Intelligence Hint
-        hint = get_specific_hint(key_drivers, stat_flags)
-        
-        # 13. Natural Language Explanation
-        explanation = generate_page_explanation(summary, quality_score, risk, decisions)
-        
-        # 11. Column-level interactive insights (for Configure Features interactivity)
-        column_insights = generate_column_specific_insights(df, numeric_df, key_drivers)
-
         return {
-            "summary": summary,
-            "key_drivers": key_drivers,
-            "quality": quality_score,
-            "distribution": dist_analysis,
-            "flags": stat_flags,
-            "confidence": confidence,
-            "business": business_translation,
-            "comparison": comparison,
-            "timeline": timeline_data,
+            "executive_summary": summary,
+            "health": health,
+            "correlations": correlations,
+            "distributions": distributions,
+            "patterns": patterns,
             "risk": risk,
-            "decisions": decisions,
-            "takeaway": takeaway,
-            "hint": hint,
-            "explanation": explanation,
+            "recommendations": recommendations,
+            "forecast": forecast,
             "column_insights": column_insights,
-            "numeric_columns": numeric_df.columns.tolist()
+            "numeric_columns": numeric_df.columns.tolist(),
+            # Fallback for old template variables during transition
+            "summary": summary,
+            "quality": health,
+            "key_drivers": correlations,
+            "flags": patterns,
+            "decisions": recommendations,
+            "takeaway": recommendations[0]['explanation'] if recommendations else "System stable.",
+            "explanation": "Analysis complete."
         }
     except Exception as e:
         logger.error(f"Error generating statistical intelligence: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        # Return fully-populated safe structure so the template never crashes
-        return {
-            "summary": "Analysis unavailable — check server logs.",
-            "key_drivers": [],
-            "quality": {"score": 0, "completeness": 0, "missing_pct": 0, "reliability": "Low"},
-            "distribution": {},
-            "flags": [],
-            "confidence": {"score": 0, "level": "Low"},
-            "business": [],
-            "comparison": [],
-            "timeline": {"changed": [], "stable": []},
-            "risk": {"level": "Low", "score": 0},
-            "decisions": [],
-            "takeaway": "Analysis unavailable.",
-            "hint": "",
-            "explanation": "",
-            "column_insights": {},
-            "numeric_columns": []
-        }
+        return get_fallback_intelligence()
 
-def get_summary_text(df, numeric_df):
-    """Simple explanation of the dataset in plain English."""
+def get_executive_summary(df, numeric_df):
+    """Generates a high-level, business-focused summary of the dataset."""
     if df.empty:
-        return "The dataset is empty or could not be processed."
-    
-    row_count = len(df)
-    col_count = len(df.columns)
+        return "The dataset contains no usable records."
+        
+    row_count = f"{len(df):,}"
     
     if numeric_df.empty:
-        return f"The dataset contains {row_count} records. Data is primarily categorical, showing stable structural patterns."
-    
-    avg_std = numeric_df.std().mean()
-    if avg_std < 0.1:
-        trend = "stable trends with low variability"
-    elif avg_std > 100:
-        trend = "dynamic trends with high variability"
-    else:
-        trend = "consistent trends with moderate variability"
+        return f"This analysis covers {row_count} records. The data is primarily categorical, revealing established structural patterns without significant numerical variations."
         
-    outliers_found = False
-    for col in numeric_df.columns:
-        if len(numeric_df[col].dropna()) > 3:
-            z_scores = np.abs(stats.zscore(numeric_df[col].dropna()))
-            if (z_scores > 3).any():
-                outliers_found = True
-                break
-            
-    anomaly_text = "no major anomalies" if not outliers_found else "some localized anomalies"
+    avg_cv = (numeric_df.std() / (numeric_df.mean().replace(0, 1e-9))).abs().mean()
     
-    return f"The data shows {trend} and {anomaly_text} across {row_count} observations."
+    if avg_cv < 0.3:
+        behavior = "highly stable and predictable"
+        action = "safe for long-term planning"
+    elif avg_cv > 1.0:
+        behavior = "highly volatile with significant fluctuations"
+        action = "requiring agile management and close monitoring"
+    else:
+        behavior = "moderately variable"
+        action = "showing standard operational patterns"
+        
+    return f"This dataset contains {row_count} records exhibiting {behavior} trends. The overall data environment appears {action}, providing a solid foundation for strategic decision-making."
 
-def get_key_drivers(df, numeric_df):
-    """Top 3 influencing features based on correlation strength."""
+def get_health_metrics(df):
+    """Comprehensive dataset health check."""
+    total_cells = df.size
+    missing_cells = df.isnull().sum().sum()
+    missing_pct = round((missing_cells / total_cells) * 100, 1) if total_cells > 0 else 0
+    completeness = max(0, 100 - missing_pct)
+    
+    # Estimate duplicate exact matches (simplified)
+    # If df has no duplicates, it's 0. We'll just say 0 since cleaning already dropped them, 
+    # but we represent "Dataset Reliability"
+    
+    reliability = "Excellent" if completeness > 98 else ("Good" if completeness > 90 else ("Warning" if completeness > 80 else "Critical"))
+    color = "Green" if completeness > 90 else ("Yellow" if completeness > 80 else "Red")
+    
+    return {
+        "rows": f"{len(df):,}",
+        "columns": len(df.columns),
+        "missing_pct": missing_pct,
+        "completeness": completeness,
+        "reliability": reliability,
+        "color": color,
+        "freshness": "Recent" # Placeholder for dashboard
+    }
+
+def get_business_correlations(df, numeric_df):
+    """Translates statistical correlations into business impact statements."""
     if numeric_df.empty or len(numeric_df.columns) < 2:
         return []
         
     corr_matrix = numeric_df.corr().abs()
+    
+    # Try to find a logical target metric (like Sales or Profit)
     target = None
-    target_candidates = ['profit', 'sales', 'revenue', 'target', 'price', 'amount', 'total']
+    target_candidates = ['profit', 'sales', 'revenue', 'target', 'price', 'amount', 'total', 'score']
     for cand in target_candidates:
-        if cand in df.columns:
-            target = cand
+        matches = [col for col in numeric_df.columns if cand in col.lower()]
+        if matches:
+            target = matches[0]
             break
             
     if not target:
         target = corr_matrix.mean().idxmax()
         
     corrs = numeric_df.corr()[target].sort_values(ascending=False)
-    if target in corrs:
-        corrs = corrs.drop(labels=[target])
+    corrs = corrs.drop(labels=[target], errors='ignore')
     
-    top_3 = []
-    for col, val in corrs.head(3).items():
-        # Strength determines the certainty of our language later
-        strength = "Strong" if abs(val) > 0.7 else ("Moderate" if abs(val) > 0.4 else "Weak")
-        impact = "High" if abs(val) > 0.6 else ("Medium" if abs(val) > 0.3 else "Low")
-        influence = "Positive" if val > 0 else "Negative"
-        top_3.append({
+    drivers = []
+    for col, val in corrs.head(4).items():
+        if abs(val) < 0.1: continue
+        
+        if val > 0.6:
+            desc = f"Strong driver: As {col} increases, {target} reliably increases."
+            impact = "High"
+        elif val > 0.3:
+            desc = f"Moderate influence: {col} has a noticeable positive effect on {target}."
+            impact = "Medium"
+        elif val < -0.6:
+            desc = f"Strong negative driver: Higher {col} reliably reduces {target}."
+            impact = "High"
+        elif val < -0.3:
+            desc = f"Moderate drag: As {col} goes up, {target} tends to drop slightly."
+            impact = "Medium"
+        else:
+            continue
+            
+        drivers.append({
             "feature": col,
-            "impact": impact,
-            "influence": influence,
-            "strength": strength,
-            "correlation": round(val, 2)
+            "target": target,
+            "correlation": round(val, 2),
+            "description": desc,
+            "impact": impact
         })
         
-    return top_3
+    return drivers
 
-def get_data_quality_score(df):
-    """Completeness and reliability metrics."""
-    total_cells = df.size
-    missing_cells = df.isnull().sum().sum()
-    completeness = round((1 - (missing_cells / total_cells)) * 100, 1) if total_cells > 0 else 0
-    
-    reliability = "High" if completeness > 95 else ("Medium" if completeness > 80 else "Low")
-    
-    return {
-        "score": completeness,
-        "completeness": completeness,
-        "missing_pct": round((missing_cells / total_cells) * 100, 1) if total_cells > 0 else 0,
-        "reliability": reliability
-    }
-
-def get_distribution_analysis(numeric_df):
-    """Skewness and outlier analysis."""
-    analysis = {}
-    for col in numeric_df.columns[:5]:
+def get_human_distributions(numeric_df):
+    """Translates skewness and kurtosis into layman's terms."""
+    distributions = []
+    for col in numeric_df.columns[:6]:
         data = numeric_df[col].dropna()
-        if len(data) < 3: continue
+        if len(data) < 10: continue
         
         skew = stats.skew(data)
-        skew_text = "Highly Skewed" if abs(skew) > 1 else ("Moderately Skewed" if abs(skew) > 0.5 else "Symmetrical")
-        spread = "High" if data.std() > data.mean() else "Uniform"
         
-        z_scores = np.abs(stats.zscore(data))
-        outliers = "Present" if (z_scores > 3).any() else "None"
-        
-        analysis[col] = {
-            "skewness": skew_text,
-            "spread": spread,
-            "outliers": outliers
-        }
-    return analysis
+        if skew > 1.5:
+            shape = "Concentrated Low"
+            desc = "Most values are clustered at the lower end, with a few unusually high spikes."
+            action = "Investigate the high-value exceptions."
+        elif skew < -1.5:
+            shape = "Concentrated High"
+            desc = "Most values are concentrated near the top, with a few lagging performers."
+            action = "Identify why the low values are lagging."
+        elif abs(skew) <= 0.5:
+            shape = "Evenly Balanced"
+            desc = "The data is distributed very evenly around the average."
+            action = "Standard predictive models will perform well here."
+        else:
+            shape = "Slightly Tilted"
+            desc = "Values lean slightly in one direction but remain relatively balanced."
+            action = "Normal operational range."
+            
+        distributions.append({
+            "feature": col,
+            "shape": shape,
+            "description": desc,
+            "action": action
+        })
+    return distributions
 
-def get_stat_flags(numeric_df):
-    """Flags for high variance and weak signals."""
-    flags = []
-    if numeric_df.empty: return flags
-        
+def get_smart_patterns(numeric_df, correlations):
+    """Detects interesting structural anomalies or patterns."""
+    patterns = []
+    if numeric_df.empty: return patterns
+    
+    # 1. High Variance Detection
     for col in numeric_df.columns:
         mean_val = numeric_df[col].mean()
         if mean_val != 0:
             cv = numeric_df[col].std() / mean_val
-            if cv > 1.2:
-                flags.append({"type": "High Variance", "feature": col, "desc": "Extreme value fluctuation detected"})
-            
+            if cv > 1.5:
+                patterns.append({
+                    "title": f"Extreme Volatility in {col}",
+                    "type": "Warning",
+                    "description": f"The values for {col} fluctuate wildly compared to its average.",
+                    "business_meaning": "This unpredictability makes it hard to forecast and may introduce operational risk."
+                })
+                break
+                
+    # 2. Constant / Dead Feature
     for col in numeric_df.columns:
-        if len(numeric_df[col].dropna()) > 3:
-            skew = stats.skew(numeric_df[col].dropna())
-            if abs(skew) > 2.0:
-                flags.append({"type": "Skewed Distribution", "feature": col, "desc": "Data shows significant bias"})
-            
-    if len(numeric_df.columns) > 1:
-        corr_matrix = numeric_df.corr().abs()
-        avg_corr = (corr_matrix.sum() - 1) / (len(numeric_df.columns) - 1)
-        weak_cols = avg_corr[avg_corr < 0.15].index.tolist()
-        for col in weak_cols[:2]:
-            flags.append({"type": "Weak Correlation", "feature": col, "desc": "Feature operates independently of others"})
-            
-    return flags[:4]
-
-def get_confidence_level(df, numeric_df):
-    """Reliability percentage."""
-    sample_size_score = min(100, (len(df) / 500) * 100)
-    quality_score = get_data_quality_score(df)["score"]
-    
-    if not numeric_df.empty:
-        cv_avg = (numeric_df.std() / (numeric_df.mean() + 0.001)).mean()
-        variance_score = max(0, 100 - (cv_avg * 15))
-    else:
-        variance_score = 70
-        
-    score = round((sample_size_score * 0.25) + (quality_score * 0.5) + (variance_score * 0.25), 1)
-    level = "High" if score > 85 else ("Medium" if score > 65 else "Low")
-    
-    return {"score": score, "level": level}
-
-def get_business_translation(df, stat_flags, key_drivers):
-    """Stats to Business mapping."""
-    translations = []
-    for flag in stat_flags[:2]:
-        if flag["type"] == "High Variance":
-            translations.append(f"Unpredictable behavior in {flag['feature']} may lead to operational forecasting errors.")
-        elif flag["type"] == "Skewed Distribution":
-            translations.append(f"Performance in {flag['feature']} is heavily unbalanced, suggesting niche dominance.")
-            
-    if key_drivers:
-        driver = key_drivers[0]
-        translations.append(f"{driver['feature']} acts as a primary {driver['influence'].lower()} catalyst for current outcomes.")
-    
-    if not translations:
-        translations.append("Data indicates a steady-state environment with minimal structural risk.")
-        
-    return translations
-
-def get_enhanced_insights(df):
-    """Enhanced timeline with numeric insights."""
-    insights = []
-    timeline = {"changed": [], "stable": []}
-    
-    if len(df) < 10:
-        return ["Limited data"], {"changed": [], "stable": ["Dataset"]}
-        
-    mid = len(df) // 2
-    prev_half = df.iloc[:mid]
-    curr_half = df.iloc[mid:]
-    
-    num_prev = prev_half.select_dtypes(include=[np.number])
-    num_curr = curr_half.select_dtypes(include=[np.number])
-    
-    if not num_prev.empty and not num_curr.empty:
-        for col in num_curr.columns[:3]:
-            p_mean = num_prev[col].mean()
-            c_mean = num_curr[col].mean()
-            
-            if p_mean != 0:
-                diff_pct = (c_mean - p_mean) / abs(p_mean) * 100
-                trend = "increased" if diff_pct > 0 else "decreased"
-                
-                msg = f"{col} {trend} by {abs(diff_pct):.1f}% recently"
-                insights.append(msg)
-                
-                if abs(diff_pct) > 10:
-                    timeline["changed"].append(msg)
-                else:
-                    timeline["stable"].append(f"{col} remains steady (+/- {abs(diff_pct):.1f}%)")
-    
-    if not insights:
-        insights.append("No significant shifts detected in the current window.")
-        timeline["stable"].append("All core metrics")
-        
-    return insights, timeline
-
-def get_risk_indicator(stat_flags, quality_score):
-    """System risk level based on variance and anomalies."""
-    risk_points = len(stat_flags) * 2
-    if quality_score["score"] < 80: risk_points += 3
-    if quality_score["score"] < 60: risk_points += 5
-    
-    level = "Low" if risk_points < 4 else ("Medium" if risk_points < 8 else "High")
-    return {"level": level, "score": risk_points}
-
-def get_enhanced_decisions(stat_flags, key_drivers, quality_score, confidence):
-    """Enhanced decisions with Impact, Effort, and Priority."""
-    decisions = []
-    
-    # Logic Fix: Adjust certainty based on correlation strength
-    if key_drivers:
-        driver = key_drivers[0]
-        strength = driver["strength"]
-        
-        certainty = "Highly recommended:" if strength == "Strong" else "Consider investigating:"
-        action = f"{certainty} Focus on {driver['feature']} as it has a {strength.lower()} {driver['influence'].lower()} influence."
-        
-        decisions.append({
-            "action": action,
-            "impact": driver["impact"],
-            "effort": "Medium",
-            "priority": 5 if strength == "Strong" else 3
-        })
-        
-    if quality_score["score"] < 85:
-        decisions.append({
-            "action": "Address missing data points to improve analytical certainty.",
-            "impact": "Medium",
-            "effort": "Low",
-            "priority": 4
-        })
-        
-    for flag in stat_flags:
-        if flag["type"] == "High Variance":
-            decisions.append({
-                "action": f"Monitor {flag['feature']} closely to manage volatility risks.",
-                "impact": "High",
-                "effort": "Medium",
-                "priority": 4
+        if numeric_df[col].std() == 0:
+            patterns.append({
+                "title": f"Stagnant Metric: {col}",
+                "type": "Info",
+                "description": f"Every single entry for {col} is exactly the same.",
+                "business_meaning": "This metric provides no analytical value currently and can be ignored in models."
             })
             break
             
-    if not decisions:
-        decisions.append({
-            "action": "Maintain current baseline and monitor for seasonal shifts.",
-            "impact": "Low",
-            "effort": "Low",
-            "priority": 2
+    # 3. Over-reliance
+    if correlations and len(correlations) > 0 and abs(correlations[0]["correlation"]) > 0.85:
+        c = correlations[0]
+        patterns.append({
+            "title": f"Heavy Reliance on {c['feature']}",
+            "type": "Insight",
+            "description": f"{c['target']} is almost entirely dependent on {c['feature']}.",
+            "business_meaning": "Changes to this single metric will drastically swing your overall performance."
         })
         
-    return decisions
+    return patterns[:4]
 
-def get_final_takeaway(risk, confidence, decisions):
-    """One clear decision summary."""
-    if risk["level"] == "High":
-        return "High volatility detected. Prioritize risk mitigation and data cleanup before major scaling."
-    if confidence["score"] < 60:
-        return "Insight reliability is moderate. Gather more data points before making high-stakes decisions."
+def get_risk_intelligence(numeric_df, health):
+    """Calculates an enterprise risk gauge based on data health and volatility."""
+    risk_score = 10 # Base risk
     
-    if decisions:
-        top_action = decisions[0]["action"].split(':')[-1].strip()
-        return f"System is stable. {top_action}"
-        
-    return "Operations are healthy. No urgent interventions required."
-
-def get_specific_hint(key_drivers, stat_flags):
-    """Specific and actionable intelligence hint."""
-    if key_drivers:
-        driver = key_drivers[0]
-        return f"Proactive adjustment of {driver['feature']} will yield the highest return on effort based on its {driver['strength'].lower()} correlation."
+    # Add risk for missing data
+    risk_score += (100 - health["completeness"]) * 0.5
     
-    if stat_flags:
-        flag = stat_flags[0]
-        return f"Reducing the variance in {flag['feature']} will stabilize overall system predictability."
+    # Add risk for volatility
+    if not numeric_df.empty:
+        avg_cv = (numeric_df.std() / (numeric_df.mean().replace(0, 1e-9))).abs().mean()
+        risk_score += min(40, avg_cv * 15)
         
-    return "Regular monitoring of outlier presence will prevent unexpected data drift."
-
-def generate_page_explanation(summary, quality_score, risk, decisions):
-    """Short natural language summary of the entire page."""
-    quality_text = f"The analysis is backed by a {quality_score['reliability'].lower()} reliability data profile."
-    risk_text = f"System risk is currently {risk['level'].lower()}."
+    risk_score = min(100, max(0, risk_score))
     
-    action_text = ""
-    if decisions:
-        action_text = f" The primary recommendation is to {decisions[0]['action'].lower()}."
+    if risk_score > 60:
+        level = "High"
+        desc = "Significant data volatility and missing values present a risk to decision making."
+    elif risk_score > 30:
+        level = "Moderate"
+        desc = "Acceptable risk levels, but certain metrics show unpredictable fluctuations."
+    else:
+        level = "Low"
+        desc = "Data is clean, stable, and highly reliable for strategic planning."
         
-    return f"{summary} {quality_text} {risk_text}{action_text}"
+    return {
+        "score": round(risk_score),
+        "level": level,
+        "description": desc
+    }
 
+def get_ai_recommendations(patterns, risk, correlations):
+    """Generates actionable AI-driven business recommendations."""
+    recs = []
+    
+    # 1. Strategy Rec based on top correlation
+    if correlations:
+        best_driver = correlations[0]
+        action_word = "Maximize" if best_driver["correlation"] > 0 else "Minimize"
+        recs.append({
+            "title": f"Optimize {best_driver['feature']}",
+            "explanation": f"Because {best_driver['feature']} heavily dictates {best_driver['target']}, dedicating resources here will yield the highest ROI.",
+            "impact": "High",
+            "priority": "Critical",
+            "confidence": 92
+        })
+        
+    # 2. Risk Mitigation Rec
+    if risk["level"] in ["High", "Moderate"]:
+        recs.append({
+            "title": "Stabilize Volatile Metrics",
+            "explanation": "High fluctuations in your data reduce forecast accuracy. Investigate the root causes of major spikes.",
+            "impact": "Medium",
+            "priority": "High",
+            "confidence": 85
+        })
+        
+    # 3. Pattern Rec
+    for pat in patterns:
+        if pat["type"] == "Warning":
+            recs.append({
+                "title": f"Investigate {pat['title']}",
+                "explanation": pat["business_meaning"],
+                "impact": "Medium",
+                "priority": "Medium",
+                "confidence": 78
+            })
+            break
+            
+    # Fallback
+    if not recs:
+        recs.append({
+            "title": "Maintain Current Strategy",
+            "explanation": "The data environment is completely stable. Continue standard operations while monitoring for future shifts.",
+            "impact": "Low",
+            "priority": "Low",
+            "confidence": 95
+        })
+        
+    return recs
 
-def generate_column_specific_insights(df, numeric_df, key_drivers):
-    """
-    Pre-compute per-column takeaway, confidence, risk, and hint
-    so the frontend can update all insight sections dynamically
-    when the user selects/deselects features in Configure Features.
-    """
-    insights = {}
-
-    for col in numeric_df.columns:
+def get_forecast_predictions(df, numeric_df):
+    """Naive extrapolation for the dashboard Forecast layer."""
+    forecasts = []
+    
+    if numeric_df.empty:
+        return forecasts
+        
+    for col in numeric_df.columns[:3]:
         data = numeric_df[col].dropna()
-        if len(data) < 3:
-            continue
-
-        mean_val = data.mean()
-        std_val  = data.std()
-        cv       = std_val / abs(mean_val) if mean_val != 0 else 0
-
-        # Skewness
-        skew = float(stats.skew(data))
-        skew_label = "Highly Skewed" if abs(skew) > 1.5 else ("Moderately Skewed" if abs(skew) > 0.5 else "Symmetrical")
-
-        # Stability
-        stability = "Stable" if cv < 0.2 else ("Volatile" if cv > 1.0 else "Variable")
-
-        # Confidence (0–100)
-        completeness = round((1 - df[col].isnull().sum() / len(df)) * 100, 1)
-        col_confidence = round(max(0, min(100, completeness * 0.6 + max(0, 100 - cv * 20) * 0.4)), 1)
-
-        # Risk
-        col_risk = "High" if cv > 1.2 or abs(skew) > 2.0 else ("Medium" if cv > 0.6 else "Low")
-
-        # Takeaway
-        if cv > 1.0:
-            takeaway = f"High volatility in {col} exceeds safe thresholds. Monitor closely before scaling decisions."
-        elif abs(skew) > 1.5:
-            takeaway = f"{col} has a {skew_label.lower()} distribution. Decision models should account for this bias."
+        if len(data) < 20: continue
+        
+        # Super naive trend detection: compare first half mean to second half mean
+        mid = len(data) // 2
+        first_half = data.iloc[:mid].mean()
+        second_half = data.iloc[mid:].mean()
+        
+        if first_half != 0:
+            growth = ((second_half - first_half) / abs(first_half)) * 100
         else:
-            takeaway = f"{col} is performing within expected boundaries. No immediate action required."
+            growth = 0
+            
+        trend = "Upward" if growth > 2 else ("Downward" if growth < -2 else "Stable")
+        
+        if trend == "Upward":
+            msg = f"If current momentum holds, {col} is projected to continue growing."
+        elif trend == "Downward":
+            msg = f"{col} is on a downward trajectory. Intervention may be required."
+        else:
+            msg = f"{col} is projected to remain steady with no major disruptions expected."
+            
+        forecasts.append({
+            "feature": col,
+            "trend": trend,
+            "growth_pct": round(growth, 1),
+            "message": msg,
+            "confidence": max(40, min(90, 90 - abs(growth))) # High growth = lower confidence in sustaining it
+        })
+        
+    return forecasts
 
-        # Hint — find strongest correlated driver
-        corr_pct = 0.0
-        if key_drivers:
-            driver_col = key_drivers[0]["feature"]
-            if driver_col != col and driver_col in numeric_df.columns:
-                corr_pct = abs(float(numeric_df[col].corr(numeric_df[driver_col]))) * 100
-        hint = (
-            f"Optimising {col} could shift {key_drivers[0]['feature']} by ~{corr_pct:.1f}% based on their correlation."
-            if key_drivers and corr_pct > 0
-            else f"Focus on reducing variance in {col} to improve overall forecast reliability."
-        )
-
+def get_interactive_column_insights(numeric_df, correlations):
+    """Generates per-column data for the interactive 'Configure Features' filter."""
+    insights = {}
+    
+    for col in numeric_df.columns:
+        mean_val = numeric_df[col].mean()
+        std_val = numeric_df[col].std()
+        cv = std_val / abs(mean_val) if mean_val != 0 else 0
+        
+        # Simple translation
+        volatility = "Stable" if cv < 0.3 else ("Volatile" if cv > 1.0 else "Normal")
+        
+        corr_info = ""
+        for c in correlations:
+            if c["feature"] == col:
+                corr_info = f"This is a {c['impact'].lower()} impact driver for {c['target']}."
+                break
+                
         insights[col] = {
-            "summary": f"{col} shows a {skew_label.lower()} distribution with {stability.lower()} behaviour.",
-            "kpi_label": f"Average {col}",
-            "kpi_value": f"{mean_val:,.2f}",
-            "quality": completeness,
-            "confidence": col_confidence,
-            "risk": col_risk,
-            "takeaway": takeaway,
-            "hint": hint,
-            "explanation": (
-                f"Statistical analysis of {col} reveals {stability.lower()} patterns "
-                f"(CV={cv:.2f}). The {skew_label.lower()} nature suggests "
-                f"{'concentrated values that may need segmentation.' if abs(skew) > 0.5 else 'balanced distribution suitable for standard modelling.'}"
-            )
+            "mean": round(mean_val, 2),
+            "volatility": volatility,
+            "business_meaning": f"{col} typically averages {mean_val:,.2f}. The data behaves in a {volatility.lower()} manner. {corr_info}"
         }
-
+        
     return insights
+
+def get_fallback_intelligence():
+    """Returns a safe, empty structure if analysis fails entirely."""
+    return {
+        "executive_summary": "Analysis unavailable. Please check the dataset.",
+        "health": {"rows": "0", "columns": 0, "completeness": 0, "reliability": "Critical", "color": "Red", "missing_pct": 0, "freshness": "Unknown"},
+        "correlations": [],
+        "distributions": [],
+        "patterns": [],
+        "risk": {"score": 0, "level": "Unknown", "description": "Cannot compute risk on missing data."},
+        "recommendations": [{"title": "Data Error", "explanation": "Upload a valid dataset.", "impact": "None", "priority": "None", "confidence": 0}],
+        "forecast": [],
+        "column_insights": {},
+        "numeric_columns": [],
+        "summary": "Error", "quality": {}, "key_drivers": [], "flags": [], "decisions": [], "takeaway": "Error", "explanation": ""
+    }

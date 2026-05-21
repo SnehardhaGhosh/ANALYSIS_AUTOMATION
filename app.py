@@ -2,11 +2,9 @@ from flask import Flask, render_template, request, redirect, session, url_for, j
 import os
 import pandas as pd
 import logging
+import logging.handlers
 from dotenv import load_dotenv
 from flask_session import Session
-
-# Load environment variables first
-load_dotenv(dotenv_path=".env")
 
 # Load environment variables first
 load_dotenv(dotenv_path=".env")
@@ -15,17 +13,52 @@ load_dotenv(dotenv_path=".env")
 from config import Config
 
 # Ensure all required folders exist BEFORE logging setup
+log_folder = os.path.abspath(Config.LOGS_FOLDER)
 os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(Config.CLEANED_FOLDER, exist_ok=True)
-os.makedirs(Config.LOGS_FOLDER, exist_ok=True)
+os.makedirs(log_folder, exist_ok=True)
 os.makedirs('instance', exist_ok=True)
 
-# Setup logging after folders are created
-logging.basicConfig(
-    filename=os.path.join(Config.LOGS_FOLDER, 'app.log'),
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+# Setup logging with a direct rotating file handler for immediate writes
+log_file = os.path.join(log_folder, 'app.log')
+_listener_started = False
+
+def _setup_logging():
+    """Initialize logging with a rotating file handler"""
+    global _listener_started
+    
+    if _listener_started:
+        return
+    
+    class FlushingFileHandler(logging.FileHandler):
+        def emit(self, record):
+            super().emit(record)
+            self.flush()  # Flush after each log write for real-time visibility
+
+    # Create handlers
+    rotating_handler = FlushingFileHandler(
+        log_file,
+        encoding='utf-8'
+    )
+    rotating_handler.setFormatter(
+        logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    )
+    rotating_handler.setLevel(logging.INFO)
+
+    # Configure root logger
+    root_logger = logging.getLogger()
+    if root_logger.handlers:
+        for handler in list(root_logger.handlers):
+            root_logger.removeHandler(handler)
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(rotating_handler)
+
+    # Keep Flask's werkzeug logging at INFO level to log HTTP requests to localhost
+    logging.getLogger('werkzeug').setLevel(logging.INFO)
+    _listener_started = True
+
+# Initialize logging
+_setup_logging()
 logger = logging.getLogger(__name__)
 
 # Modules
@@ -1014,10 +1047,21 @@ def ml_advanced():
         dataset_path = session.get('cleaned_raw_dataset', session.get('dataset'))
         df = pd.read_csv(dataset_path)
         
-        y_col = data.get('y_col') or df.select_dtypes(include=['number']).columns[0]
-        if y_col not in df.columns: y_col = df.select_dtypes(include=['number']).columns[0]
+        numeric_cols = df.select_dtypes(include=['number']).columns
+        if len(numeric_cols) == 0:
+            return jsonify({"error": "No numeric columns found for prediction."}), 400
+            
+        y_col = data.get('y_col')
+        if not y_col or y_col not in numeric_cols:
+            y_col = numeric_cols[0]
         
-        y_vals = df[y_col].tail(30).fillna(0).values # Use 30 points for better regression
+        # Ensure it is strictly numeric, coercing any errors to NaN, then filling with 0
+        df[y_col] = pd.to_numeric(df[y_col], errors='coerce').fillna(0)
+        y_vals = df[y_col].tail(30).values # Use up to 30 points for better regression
+        
+        if len(y_vals) < 2:
+            return jsonify({"error": "Not enough data points for prediction."}), 400
+            
         x_vals = range(len(y_vals))
         
         from sklearn.linear_model import LinearRegression
@@ -1033,6 +1077,8 @@ def ml_advanced():
         
     except Exception as e:
         logger.error(f"Advanced ML error: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 # 🤖 FULL AGENTIC ANALYSIS API
@@ -1267,6 +1313,35 @@ def forbidden(error):
     return render_template('error.html', error='Access forbidden'), 403
 
 
+# ------------------- SHUTDOWN HANDLER -------------------
+import atexit
+import signal
+
+def shutdown_logging():
+    """Gracefully shutdown the logging system"""
+    global _listener_started
+    
+    try:
+        if _listener_started:
+            logging.shutdown()
+            _listener_started = False
+    except Exception:
+        # Silently ignore errors during shutdown (common in Flask debug reloader)
+        pass
+
+# Register shutdown handlers
+atexit.register(shutdown_logging)
+
+# Also register for signal interrupts
+signal.signal(signal.SIGINT, lambda sig, frame: shutdown_logging())
+signal.signal(signal.SIGTERM, lambda sig, frame: shutdown_logging())
+
+# Flask shutdown handler
+@app.teardown_appcontext
+def teardown_db(exception=None):
+    """Called when the application context is torn down"""
+    pass  # Add database cleanup here if needed
+
 # ------------------- RUN -------------------
 
 if __name__ == "__main__":
@@ -1286,3 +1361,5 @@ if __name__ == "__main__":
     except Exception as e:
         logger.critical(f"Failed to start server: {str(e)}")
         sys.exit(1)
+    finally:
+        shutdown_logging()

@@ -1,6 +1,11 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import warnings
+
+# Suppress specific warnings
+warnings.filterwarnings('ignore', category=RuntimeWarning, message='Mean of empty slice')
+warnings.filterwarnings('ignore', category=FutureWarning, message='.*incompatible dtype.*')
 
 # Global cache for column type inference (avoids redundant detection)
 _type_cache = {}
@@ -110,7 +115,7 @@ def clean_data(df):
             
             elif col_dtype == 'datetime':
                 # For datetime: forward fill then backward fill
-                datetime_col = pd.to_datetime(df[col], errors='coerce')
+                datetime_col = pd.to_datetime(df[col], errors='coerce', format='mixed')
                 df[col] = datetime_col.ffill().bfill()
             
             elif col_dtype == 'boolean':
@@ -237,7 +242,8 @@ def clean_data(df):
             
             if outlier_count > 0:
                 # Cap outliers instead of removing (preserves row count)
-                df[col] = numeric_col.copy()
+                # Cast to float to avoid FutureWarning when assigning float bounds to int column
+                df[col] = numeric_col.astype(float).copy()
                 df.loc[df[col] < lower_bound, col] = lower_bound
                 df.loc[df[col] > upper_bound, col] = upper_bound
                 
@@ -333,7 +339,7 @@ def clean_data(df):
                     if isinstance(val, (int, float)) and val > 1e18:
                         df[col] = pd.to_datetime(df[col], unit='ns')
                     else:
-                        df[col] = pd.to_datetime(df[col], errors='coerce')
+                        df[col] = pd.to_datetime(df[col], errors='coerce', format='mixed')
                 
                 df[col] = df[col].dt.strftime('%Y-%m-%d')
             except:

@@ -1,25 +1,62 @@
 {% extends "base.html" %}
 {% block content %}
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Include FontAwesome for icons if not already in base.html, but assuming it is based on previous design -->
+<!-- Add bootstrap bundle for tooltips -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
+    /* ==========================================================================
+       GLASSMORPHISM & MODERN DESIGN SYSTEM
+       ========================================================================== */
     :root {
-        --google-blue: #1a73e8;
-        --google-red: #ea4335;
-        --google-yellow: #fbbc04;
-        --google-green: #34a853;
-        --surface-color: #ffffff;
-        --background-color: #f8f9fa;
-        --text-primary: #202124;
-        --text-secondary: #5f6368;
-        --border-color: #dadce0;
-        --accent-purple: #8e24aa;
+        --glass-bg: rgba(255, 255, 255, 0.65);
+        --glass-border: rgba(255, 255, 255, 0.5);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        
+        --color-success: #10b981;
+        --color-warning: #f59e0b;
+        --color-danger: #ef4444;
+        --color-info: #3b82f6;
+        --color-purple: #8b5cf6;
     }
 
     body {
         font-family: 'Inter', sans-serif;
-        background-color: var(--background-color);
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%, #e0eafc 100%, #cfdef3 100%);
+        background-attachment: fixed;
         color: var(--text-primary);
+        position: relative;
+    }
+    
+    /* Animated Background Orbs for Deep Glassmorphism Effect */
+    body::before, body::after {
+        content: "";
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(80px);
+        z-index: -1;
+        opacity: 0.6;
+        animation: float 20s infinite alternate ease-in-out;
+    }
+    body::before {
+        top: -10%; left: -10%;
+        width: 500px; height: 500px;
+        background: rgba(59, 130, 246, 0.3);
+    }
+    body::after {
+        bottom: -10%; right: -10%;
+        width: 600px; height: 600px;
+        background: rgba(139, 92, 246, 0.25);
+        animation-delay: -5s;
+    }
+    @keyframes float {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(100px, 50px) scale(1.2); }
     }
 
     .eda-container {
@@ -28,702 +65,418 @@
         padding: 2rem;
     }
 
-    .eda-header {
-        margin-bottom: 2rem;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 1.5rem;
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Outfit', sans-serif;
+        letter-spacing: -0.02em;
     }
 
-    .eda-title {
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .eda-subtitle {
-        color: var(--text-secondary);
-        font-size: 1.1rem;
-        margin-top: 0.5rem;
-    }
-
-    /* Summary Banner & Takeaway */
-    .summary-banner {
-        background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 15px rgba(26, 115, 232, 0.2);
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: var(--glass-shadow);
+        padding: 1.75rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        height: 100%;
         position: relative;
         overflow: hidden;
     }
-
-    .takeaway-box {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 2.5rem;
-        border-left: 6px solid var(--google-yellow);
+    .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.2);
+        background: rgba(255, 255, 255, 0.8);
     }
 
-    .summary-title {
-        font-size: 0.875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        opacity: 0.9;
-        margin-bottom: 0.5rem;
+    /* Gradient Text */
+    .text-gradient {
+        background: linear-gradient(135deg, var(--color-info), var(--color-purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
     }
 
-    .summary-text {
-        font-size: 1.5rem;
-        font-weight: 500;
-        line-height: 1.4;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2.5rem;
-    }
-
-    .google-card {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.5rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-    }
-
-    .google-card:hover {
-        box-shadow: 0 8px 24px rgba(60, 64, 67, 0.12);
-    }
-
+    /* Section Titles */
     .section-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 1.25rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 0.75rem;
         color: var(--text-primary);
     }
 
-    .kpi-label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-        margin-bottom: 0.25rem;
-    }
-
-    .kpi-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
-
-    .badge-google {
-        padding: 0.25rem 0.6rem;
-        border-radius: 4px;
+    /* Badges */
+    .glass-badge {
+        padding: 0.35rem 0.85rem;
+        border-radius: 30px;
         font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .badge-green {
-        background: #e6f4ea;
-        color: #1e8e3e;
-    }
-
-    .badge-yellow {
-        background: #fef7e0;
-        color: #f29900;
-    }
-
-    .badge-red {
-        background: #fce8e6;
-        color: #d93025;
-    }
-
-    .badge-blue {
-        background: #e8f0fe;
-        color: #1967d2;
-    }
-
-    .impact-badge {
-        font-size: 0.7rem;
         font-weight: 700;
-        padding: 0.2rem 0.5rem;
-        border-radius: 20px;
-        margin-left: 0.5rem;
-    }
-
-    .driver-item {
-        display: flex;
-        justify-content: space-between;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
+        display: inline-flex;
         align-items: center;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #f1f3f4;
+        gap: 0.4rem;
     }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-yellow { background: rgba(245, 158, 11, 0.15); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-red { background: rgba(239, 68, 68, 0.15); color: #b91c1c; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-blue { background: rgba(59, 130, 246, 0.15); color: #1d4ed8; border: 1px solid rgba(59, 130, 246, 0.3); }
 
-    .stat-flag {
-        display: flex;
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 8px;
-        background: #f8f9fa;
-        margin-bottom: 1rem;
-        border-left: 4px solid var(--google-blue);
-    }
+    /* Health Gauge / Progress */
+    .circular-chart { display: block; margin: 0 auto; max-width: 80%; max-height: 250px; }
+    .circle-bg { fill: none; stroke: rgba(0,0,0,0.05); stroke-width: 3.8; }
+    .circle { fill: none; stroke-width: 2.8; stroke-linecap: round; animation: progress 1s ease-out forwards; }
+    @keyframes progress { 0% { stroke-dasharray: 0 100; } }
+    .percentage { fill: var(--text-primary); font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.5em; text-anchor: middle; }
+    .percentage-label { fill: var(--text-secondary); font-family: 'Inter', sans-serif; font-size: 0.15em; text-anchor: middle; }
 
-    .confidence-meter {
-        height: 8px;
-        background: #e8eaed;
-        border-radius: 4px;
-        overflow: hidden;
-        margin: 1rem 0;
-    }
-
-    .confidence-fill {
-        height: 100%;
-        background: var(--google-green);
-        transition: width 1s ease-out;
-    }
-
-    .insight-tag {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        background: #f1f3f4;
-        border-radius: 16px;
-        font-size: 0.8125rem;
-        margin-right: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .analysis-row {
+    /* Dynamic Grid Layouts */
+    .grid-dashboard {
         display: grid;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: repeat(12, 1fr);
         gap: 1.5rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
     }
-
+    .col-span-12 { grid-column: span 12; }
+    .col-span-8 { grid-column: span 8; }
+    .col-span-7 { grid-column: span 7; }
+    .col-span-6 { grid-column: span 6; }
+    .col-span-5 { grid-column: span 5; }
+    .col-span-4 { grid-column: span 4; }
+    .col-span-3 { grid-column: span 3; }
+    
     @media (max-width: 1024px) {
-        .analysis-row {
-            grid-template-columns: 1fr;
-        }
+        .col-span-8, .col-span-7, .col-span-6, .col-span-5, .col-span-4, .col-span-3 { grid-column: span 12; }
     }
 
-    .explanation-box {
-        margin-top: 1.5rem;
-        padding: 1.25rem;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-    }
-
-    .decision-item {
+    /* Interactive Insight Cards */
+    .insight-list-item {
         padding: 1rem;
-        border-radius: 8px;
-        background: #fff;
-        border: 1px solid var(--border-color);
-        margin-bottom: 1rem;
-    }
-
-    .priority-stars {
-        color: var(--google-yellow);
-        font-size: 0.8rem;
-    }
-
-    .explanation-feature {
-        background: #f1f3f4;
-        padding: 1.5rem;
+        background: rgba(255,255,255,0.4);
+        border: 1px solid rgba(255,255,255,0.6);
         border-radius: 12px;
-        margin-top: 2.5rem;
-        border-left: 4px solid var(--google-blue);
+        margin-bottom: 1rem;
+        transition: transform 0.2s;
+        cursor: pointer;
     }
+    .insight-list-item:hover {
+        transform: translateX(5px);
+        background: rgba(255,255,255,0.8);
+    }
+
+    /* Buttons */
+    .btn-glass {
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        color: var(--text-primary);
+        font-weight: 600;
+        border-radius: 30px;
+        padding: 0.6rem 1.5rem;
+        backdrop-filter: blur(10px);
+        transition: all 0.2s;
+    }
+    .btn-glass:hover {
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transform: translateY(-2px);
+    }
+    .btn-glass-primary {
+        background: linear-gradient(135deg, var(--color-info), var(--color-purple));
+        color: white;
+        border: none;
+    }
+    .btn-glass-primary:hover {
+        opacity: 0.9;
+        color: white;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Animation Classes */
+    .fade-up {
+        animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    
 </style>
 
 <div class="eda-container">
     <!-- Header -->
-    <header class="eda-header stagger-entrance stagger-1">
-        <div class="d-flex justify-content-between align-items-end">
-            <div>
-                <h1 class="eda-title">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        class="text-primary">
-                        <path d="M3 3v18h18M7 16l4-4 4 4 6-6"></path>
-                    </svg>
-                    Statistical Intelligence
-                </h1>
-                <p class="eda-subtitle">Analyst Explanation Layer & Strategic Insights</p>
-            </div>
-            <div class="d-flex gap-2 mb-1">
-                <button class="btn btn-outline-secondary btn-sm" onclick="toggleFilter()"><i
-                        class="fas fa-cog me-1"></i> Configure Features</button>
-                <button class="btn btn-primary btn-sm" onclick="exportData()"><i class="fas fa-file-download me-1"></i>
-                    Export Intelligence</button>
-            </div>
+    <header class="d-flex justify-content-between align-items-end mb-4 fade-up">
+        <div>
+            <h1 class="text-gradient mb-1">AI Business Intelligence</h1>
+            <p class="text-secondary fs-5 m-0">Actionable insights translated from raw statistical data.</p>
+        </div>
+        <div class="d-flex gap-3">
+            <a href="/chat" class="btn btn-glass d-flex align-items-center gap-2" data-bs-toggle="tooltip" title="Ask AI about these insights">
+                <i class="fas fa-sparkles text-warning"></i> AI Data Assistant
+            </a>
+            <button class="btn btn-glass-primary d-flex align-items-center gap-2" onclick="window.print()">
+                <i class="fas fa-file-pdf"></i> Export Report
+            </button>
         </div>
     </header>
 
-    <!-- 1. Statistical Summary -->
-    <section class="summary-banner stagger-entrance stagger-2">
-        <div class="summary-title">Dataset Narrative</div>
-        <div class="summary-text">
-            "{{ reports.intelligence.summary }}"
-        </div>
-    </section>
-
-    <!-- 6. Final Takeaway Section -->
-    <section class="takeaway-box stagger-entrance stagger-2">
-        <h6 class="summary-title text-dark">Final Decision Takeaway</h6>
-        <div class="d-flex align-items-center gap-3">
-            <i class="fas fa-lightbulb fa-2x text-warning"></i>
-            <h4 class="mb-0 fw-bold" id="displayTakeaway">{{ reports.intelligence.takeaway }}</h4>
-        </div>
-    </section>
-
-    <!-- KPI Grid -->
-    <section class="stats-grid stagger-entrance stagger-3">
-        <!-- Confidence Level -->
-        <div class="google-card">
-            <div class="kpi-label">Insight Confidence</div>
-            <div class="d-flex align-items-baseline gap-2">
-                <div class="kpi-value">{{ reports.intelligence.confidence.score }}%</div>
-                <span
-                    class="badge-google {% if reports.intelligence.confidence.level == 'High' %}badge-green{% elif reports.intelligence.confidence.level == 'Medium' %}badge-yellow{% else %}badge-red{% endif %}">
-                    {{ reports.intelligence.confidence.level }} Reliability
-                </span>
-            </div>
-            <div class="confidence-meter">
-                <div class="confidence-fill" style="width: {{ reports.intelligence.confidence.score }}%"></div>
-            </div>
-            <p class="x-small text-muted mb-0">Based on data volume, variance, and completeness.</p>
+    <div class="grid-dashboard">
+        
+        <!-- 1. Executive Summary -->
+        <div class="glass-card col-span-12 fade-up delay-1" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));">
+            <h3 class="section-title"><i class="fas fa-chess-knight text-purple"></i> Executive Summary</h3>
+            <p class="fs-4 fw-medium text-primary m-0" style="line-height: 1.6;">
+                {{ reports.intelligence.executive_summary }}
+            </p>
         </div>
 
-        <!-- 5. Risk Indicator -->
-        <div class="google-card">
-            <div class="kpi-label">System Risk Level</div>
-            <div class="d-flex align-items-center gap-2 mt-1">
-                <i
-                    class="fas fa-shield-alt fa-2x {% if reports.intelligence.risk.level == 'Low' %}text-success{% elif reports.intelligence.risk.level == 'Medium' %}text-warning{% else %}text-danger{% endif %}"></i>
+        <!-- 2. Dataset Health Intelligence -->
+        <div class="glass-card col-span-4 fade-up delay-2 text-center">
+            <h3 class="section-title justify-content-center"><i class="fas fa-heartbeat text-danger"></i> Dataset Health</h3>
+            
+            <svg viewBox="0 0 36 36" class="circular-chart mt-2">
+                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="circle" stroke="{% if reports.intelligence.health.color == 'Green' %}#10b981{% elif reports.intelligence.health.color == 'Yellow' %}#f59e0b{% else %}#ef4444{% endif %}" stroke-dasharray="{{ reports.intelligence.health.completeness }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <text x="18" y="19" class="percentage">{{ reports.intelligence.health.completeness }}%</text>
+                <text x="18" y="24" class="percentage-label">Data Completeness</text>
+            </svg>
+            
+            <div class="d-flex justify-content-around mt-4">
                 <div>
-                    <div class="kpi-value">{{ reports.intelligence.risk.level }}</div>
-                    <div class="x-small text-muted">Risk Score: {{ reports.intelligence.risk.score }}/10</div>
+                    <div class="text-secondary small fw-bold text-uppercase">Records</div>
+                    <div class="fs-4 fw-bold">{{ reports.intelligence.health.rows }}</div>
+                </div>
+                <div>
+                    <div class="text-secondary small fw-bold text-uppercase">Features</div>
+                    <div class="fs-4 fw-bold">{{ reports.intelligence.health.columns }}</div>
                 </div>
             </div>
-            <p class="x-small text-muted mt-3 mb-0">Calculated from statistical anomalies and feature variance.</p>
-        </div>
-
-        <!-- Data Quality -->
-        <div class="google-card">
-            <div class="kpi-label">Data Integrity</div>
-            <div class="kpi-value">{{ reports.intelligence.quality.score }}%</div>
-            <div class="mt-2">
-                <span class="badge-google badge-blue">{{ reports.intelligence.quality.completeness }}% Complete</span>
-                <span class="x-small text-muted d-block mt-2">{{ reports.intelligence.quality.missing_pct }}% missing
-                    values detected.</span>
+            
+            <div class="mt-4 pt-3 border-top" style="border-color: var(--glass-border) !important;">
+                <span class="glass-badge badge-{{ reports.intelligence.health.color | lower }}">
+                    <i class="fas fa-shield-alt"></i> {{ reports.intelligence.health.reliability }} Reliability
+                </span>
             </div>
         </div>
-    </section>
 
-    <!-- Main Analysis Row -->
-    <div class="analysis-row stagger-entrance stagger-4">
-        <!-- Distribution Intelligence -->
-        <div class="google-card">
-            <h3 class="section-title">
-                <i class="fas fa-chart-area text-primary"></i> Distribution Intelligence
-            </h3>
-            <div class="chart-container">
-                <canvas id="distributionChart"></canvas>
+        <!-- 7. Risk Intelligence & 8. AI Recommendations -->
+        <div class="glass-card col-span-8 fade-up delay-2">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="section-title m-0"><i class="fas fa-lightbulb text-warning"></i> AI Recommendations</h3>
+                <span class="glass-badge badge-{% if reports.intelligence.risk.level == 'Low' %}green{% elif reports.intelligence.risk.level == 'Moderate' %}yellow{% else %}red{% endif %}" data-bs-toggle="tooltip" title="{{ reports.intelligence.risk.description }}">
+                    <i class="fas fa-exclamation-triangle"></i> System Risk: {{ reports.intelligence.risk.level }}
+                </span>
             </div>
-            <div class="explanation-box">
-                <h6 class="fw-bold mb-3">Interpretation Layer</h6>
-                <div class="row">
-                    {% if reports.intelligence.distribution %}
-                        {% for col, info in reports.intelligence.distribution.items() %}
-                        <div class="col-md-6 mb-3">
-                            <div class="small fw-bold text-primary">{{ col }}</div>
-                            <div class="x-small text-muted">
-                                <span class="me-2"><i class="fas fa-shapes me-1"></i> {{ info.skewness }}</span>
-                                <span class="me-2"><i class="fas fa-arrows-alt-h me-1"></i> {{ info.spread }}</span>
-                                <span><i class="fas fa-exclamation-triangle me-1"></i> Outliers: {{ info.outliers }}</span>
+            
+            <div class="row g-3">
+                {% for rec in reports.intelligence.recommendations %}
+                <div class="col-md-6">
+                    <div class="insight-list-item h-100 d-flex flex-column" data-bs-toggle="tooltip" title="Confidence: {{ rec.confidence }}%">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="glass-badge {% if rec.impact == 'High' %}badge-red{% elif rec.impact == 'Medium' %}badge-yellow{% else %}badge-blue{% endif %}">Impact: {{ rec.impact }}</span>
+                            <span class="glass-badge badge-blue"><i class="fas fa-bolt"></i> Priority: {{ rec.priority }}</span>
+                        </div>
+                        <h5 class="fw-bold mb-2">{{ rec.title }}</h5>
+                        <p class="text-secondary small mb-0 flex-grow-1">{{ rec.explanation }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 4. Correlation Intelligence -->
+        <div class="glass-card col-span-12 fade-up delay-3">
+            <h3 class="section-title"><i class="fas fa-project-diagram text-info"></i> Key Drivers (Correlation Intelligence)</h3>
+            <p class="text-secondary mb-4">Features that have the strongest influence on your primary metrics.</p>
+            
+            {% if reports.intelligence.correlations %}
+            <div class="row g-4">
+                {% for corr in reports.intelligence.correlations %}
+                <div class="col-md-3">
+                    <div class="insight-list-item text-center h-100">
+                        <div class="fs-1 mb-2 {% if corr.correlation > 0 %}text-success{% else %}text-danger{% endif %}">
+                            <i class="fas {% if corr.correlation > 0 %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %}"></i>
+                        </div>
+                        <h6 class="fw-bold mb-1">{{ corr.feature }}</h6>
+                        <div class="glass-badge {% if corr.impact == 'High' %}badge-green{% else %}badge-blue{% endif %} mb-3">{{ corr.impact }} Impact</div>
+                        <p class="small text-secondary m-0">{{ corr.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-4 text-center bg-light rounded-3" style="background: rgba(255,255,255,0.4) !important;">
+                <p class="text-secondary m-0">No strong numerical correlations detected in the current dataset.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 5. Distribution Analysis & 6. Pattern Detection -->
+        <div class="col-span-12 grid-dashboard p-0 m-0 fade-up delay-4">
+            
+            <div class="glass-card col-span-7">
+                <h3 class="section-title"><i class="fas fa-chart-bar text-primary"></i> Distribution Analysis</h3>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="distChart"></canvas>
+                </div>
+                
+                <div class="mt-4 pt-3 border-top" style="border-color: var(--glass-border) !important;">
+                    <h6 class="fw-bold mb-3">AI Interpretation</h6>
+                    <div class="row g-2">
+                        {% for dist in reports.intelligence.distributions[:2] %}
+                        <div class="col-6">
+                            <div class="insight-list-item p-2">
+                                <strong class="small d-block text-primary">{{ dist.feature }}</strong>
+                                <span class="x-small text-secondary">{{ dist.description }}</span>
                             </div>
                         </div>
                         {% endfor %}
-                    {% else %}
-                        <div class="col-12 text-center py-3">
-                            <p class="small text-muted">No distribution details available for focal features.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Key Drivers -->
-        <div class="google-card">
-            <h3 class="section-title">
-                <i class="fas fa-bolt text-warning"></i> Key Drivers of Change
-            </h3>
-            <p class="small text-muted mb-4">Features with the strongest predictive correlation.</p>
-            <div class="drivers-list">
-                {% for driver in reports.intelligence.key_drivers %}
-                <div class="driver-item">
-                    <div>
-                        <div class="fw-bold">{{ driver.feature }}</div>
-                        <div class="x-small text-muted">{{ driver.strength }} {{ driver.influence }} Influence</div>
                     </div>
-                    <span
-                        class="impact-badge {% if driver.impact == 'High' %}badge-red{% elif driver.impact == 'Medium' %}badge-yellow{% else %}badge-green{% endif %}">{{
-                        driver.impact }}</span>
-                </div>
-                {% endfor %}
-            </div>
-
-            <div class="mt-auto pt-4">
-                <div class="p-3 bg-light rounded" style="border-left: 3px solid var(--google-yellow);">
-                    <h6 class="small fw-bold mb-1">Intelligence Hint</h6>
-                    <p class="x-small text-muted mb-0">{{ reports.intelligence.hint }}</p>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Decisions & Translation -->
-    <div class="analysis-row stagger-entrance stagger-5">
-        <div class="google-card">
-            <h3 class="section-title">
-                <i class="fas fa-flag text-danger"></i> Statistical Flags & Meaning
-            </h3>
-            <div class="row">
-                <div class="col-md-6">
-                    {% for flag in reports.intelligence.flags %}
-                    <div class="stat-flag">
-                        <div class="flag-icon">
-                            {% if flag.type == 'High Variance' %}<i class="fas fa-wave-square"></i>
-                            {% elif flag.type == 'Skewed Distribution' %}<i class="fas fa-align-left"></i>
-                            {% else %}<i class="fas fa-circle-nodes"></i>{% endif %}
+            <div class="glass-card col-span-5">
+                <h3 class="section-title"><i class="fas fa-search-plus text-purple"></i> Smart Pattern Detection</h3>
+                <p class="small text-secondary mb-3">AI automatically detected the following unusual behaviors:</p>
+                
+                <div class="d-flex flex-column gap-3">
+                    {% for pat in reports.intelligence.patterns %}
+                    <div class="insight-list-item m-0">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="fs-3 {% if pat.type == 'Warning' %}text-danger{% elif pat.type == 'Insight' %}text-info{% else %}text-secondary{% endif %}">
+                                <i class="fas {% if pat.type == 'Warning' %}fa-exclamation-circle{% elif pat.type == 'Insight' %}fa-eye{% else %}fa-info-circle{% endif %}"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ pat.title }}</h6>
+                                <p class="x-small text-dark mb-1">{{ pat.description }}</p>
+                                <p class="x-small text-secondary fst-italic m-0 border-start border-2 border-primary ps-2">{{ pat.business_meaning }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <div class="fw-bold small">{{ flag.type }}: {{ flag.feature }}</div>
-                            <div class="x-small text-muted">{{ flag.desc }}</div>
-                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-3 text-center">
+                        <p class="text-secondary m-0">No unusual patterns or critical anomalies detected.</p>
                     </div>
                     {% endfor %}
                 </div>
-                <div class="col-md-6">
-                    <div class="p-4 bg-light rounded h-100" style="border-left: 4px solid var(--google-blue);">
-                        <h6 class="fw-bold mb-3">Business Translation Layer</h6>
-                        {% for trans in reports.intelligence.business %}
-                        <div class="mb-3 d-flex gap-3">
-                            <i class="fas fa-language text-primary mt-1"></i>
-                            <p class="small mb-0">{{ trans }}</p>
+            </div>
+
+        </div>
+
+        <!-- 9. Forecast & Predictions -->
+        <div class="glass-card col-span-12 fade-up delay-4">
+            <h3 class="section-title"><i class="fas fa-crystal-ball text-success"></i> Forecast & Predictions</h3>
+            
+            {% if reports.intelligence.forecast %}
+            <div class="row g-4">
+                {% for fc in reports.intelligence.forecast %}
+                <div class="col-md-4">
+                    <div class="insight-list-item h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold m-0">{{ fc.feature }}</h5>
+                            <span class="glass-badge {% if fc.trend == 'Upward' %}badge-green{% elif fc.trend == 'Downward' %}badge-red{% else %}badge-blue{% endif %}">
+                                {{ fc.trend }} <i class="fas {% if fc.trend == 'Upward' %}fa-arrow-up{% elif fc.trend == 'Downward' %}fa-arrow-down{% else %}fa-minus{% endif %}"></i>
+                            </span>
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. Improved Decisions -->
-        <div class="google-card">
-            <h3 class="section-title">
-                <i class="fas fa-lightbulb text-google-green"></i> Recommended Actions
-            </h3>
-            <div class="decisions-list">
-                {% for d in reports.intelligence.decisions %}
-                <div class="decision-item">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="priority-stars">
-                            {% for i in range(d.priority) %}<i class="fas fa-star"></i>{% endfor %}
-                        </span>
-                        <span
-                            class="badge-google {% if d.impact == 'High' %}badge-red{% else %}badge-blue{% endif %}">Impact:
-                            {{ d.impact }}</span>
-                    </div>
-                    <p class="small fw-bold mb-1">{{ d.action }}</p>
-                    <div class="x-small text-muted">Effort Required: {{ d.effort }}</div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Timeline & Comparison -->
-    <div class="analysis-row stagger-entrance stagger-6">
-        <div class="google-card">
-            <h3 class="section-title">
-                <i class="fas fa-history text-accent-purple"></i> Period Comparison Insights
-            </h3>
-            <div class="row">
-                {% for insight in reports.intelligence.comparison %}
-                <div class="col-md-6 mb-3">
-                    <div class="p-3 border rounded">
-                        <p class="small mb-0 text-secondary">{{ insight }}</p>
+                        <p class="fs-3 fw-bold mb-2 {% if fc.trend == 'Upward' %}text-success{% elif fc.trend == 'Downward' %}text-danger{% else %}text-secondary{% endif %}">
+                            {{ '+' if fc.growth_pct > 0 else ''}}{{ fc.growth_pct }}%
+                        </p>
+                        <p class="small text-secondary mb-3">{{ fc.message }}</p>
+                        <div class="progress" style="height: 6px; background: rgba(0,0,0,0.05);" data-bs-toggle="tooltip" title="AI Forecast Confidence: {{ fc.confidence }}%">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ fc.confidence }}%"></div>
+                        </div>
+                        <div class="text-end x-small mt-1 text-muted">Confidence: {{ fc.confidence }}%</div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
+            {% else %}
+            <div class="p-4 text-center bg-light rounded-3" style="background: rgba(255,255,255,0.4) !important;">
+                <p class="text-secondary m-0">Insufficient numerical sequence data to generate reliable forecasts.</p>
+            </div>
+            {% endif %}
         </div>
-
-        <!-- 4. Improved Timeline -->
-        <div class="google-card">
-            <h3 class="section-title">
-                <i class="fas fa-stream text-primary"></i> Analytical Timeline
-            </h3>
-            <div class="timeline-container">
-                <div class="mb-4 position-relative" style="padding-left: 1.5rem;">
-                    <div
-                        style="position: absolute; left: -5px; top: 10px; width: 12px; height: 12px; border-radius: 50%; background: var(--google-red); border: 2px solid white;">
-                    </div>
-                    <div class="fw-bold small">Recent Shifts (High Change)</div>
-                    <div class="mt-2">
-                        {% for item in reports.intelligence.timeline.changed %}
-                        <div class="x-small mb-1"><i class="fas fa-caret-up text-danger me-1"></i> {{ item }}</div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="position-relative" style="padding-left: 1.5rem;">
-                    <div
-                        style="position: absolute; left: -5px; top: 10px; width: 12px; height: 12px; border-radius: 50%; background: var(--google-green); border: 2px solid white;">
-                    </div>
-                    <div class="fw-bold small">Core Stability (Low Change)</div>
-                    <div class="mt-2">
-                        {% for item in reports.intelligence.timeline.stable %}
-                        <div class="x-small mb-1"><i class="fas fa-check text-success me-1"></i> {{ item }}</div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 8. Explain Analysis Feature -->
-    <section class="explanation-feature stagger-entrance stagger-7">
-        <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="bg-primary text-white p-2 rounded-circle">
-                <i class="fas fa-robot"></i>
-            </div>
-            <h5 class="mb-0 fw-bold">Explain This Analysis</h5>
-        </div>
-        <p class="text-secondary mb-0" id="displayExplanation">
-            {{ reports.intelligence.explanation }}
-        </p>
-    </section>
-</div>
-
-<!-- Filter Modal -->
-<div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="google-card modal-content border-0 p-4">
-            <div class="modal-header border-0 p-0 mb-3">
-                <h5 class="modal-title fw-bold">Select Focal Features</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0">
-                <p class="small text-muted mb-3">Select the dimensions you want the explanation layer to prioritize.</p>
-                <div class="mb-3" style="max-height: 300px; overflow-y: auto;">
-                    <div class="d-flex flex-column gap-2">
-                        {% for col in columns %}
-                        <div class="form-check">
-                            <input class="form-check-input column-filter-checkbox" type="checkbox" value="{{ col }}"
-                                id="check_{{ loop.index }}" checked>
-                            <label class="form-check-label small" for="check_{{ loop.index }}">
-                                {{ col }}
-                            </label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 p-0 mt-3 d-flex gap-2">
-                <button type="button" class="btn btn-light btn-sm flex-grow-1" onclick="selectAll(false)">Clear
-                    All</button>
-                <button type="button" class="btn btn-primary btn-sm flex-grow-1" onclick="applyFilters()">Update
-                    Intelligence</button>
-            </div>
-        </div>
+        
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = '#5f6368';
-
-    let distributionChart;
-
+    // Initialize tooltips
     document.addEventListener('DOMContentLoaded', function () {
-        initCharts();
-    });
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
 
-    function initCharts() {
-        const distCtx = document.getElementById('distributionChart').getContext('2d');
-        const distLabels = {{ reports.numeric_columns[:8] | tojson }};
-        const distData = [
-            {% for col in reports.numeric_columns[:8] %}
-                {% if col in reports.stats and reports.stats[col].mean is not none %}
-                    {{ reports.stats[col].mean if reports.stats[col].mean == reports.stats[col].mean else 0 }},
-                {% else %}
-                    0,
-                {% endif %}
-            {% endfor %}
-        ];
+        // Chart.js Setup for Distribution Analysis
+        const distCtx = document.getElementById('distChart');
+        if (distCtx) {
+            const labels = {{ reports.numeric_columns[:6] | tojson }};
+            const data = [
+                {% for col in reports.numeric_columns[:6] %}
+                    {% if col in reports.stats and reports.stats[col].mean is not none %}
+                        {{ reports.stats[col].mean if reports.stats[col].mean == reports.stats[col].mean else 0 }},
+                    {% else %}
+                        0,
+                    {% endif %}
+                {% endfor %}
+            ];
 
-        distributionChart = new Chart(distCtx, {
-            type: 'bar',
-            data: {
-                labels: distLabels,
-                datasets: [{
-                    label: 'Mean Distribution',
-                    data: distData,
-                    backgroundColor: '#1a73e8',
-                    borderRadius: 6,
-                    barThickness: 35
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#202124',
-                        padding: 12,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: function (context) {
-                                return ' Average Value: ' + context.raw.toLocaleString(undefined, { minimumFractionDigits: 2 });
+            new Chart(distCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Value',
+                        data: data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(139, 92, 246, 0.7)',
+                        hoverBorderColor: 'rgba(139, 92, 246, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1e293b',
+                            bodyColor: '#475569',
+                            borderColor: 'rgba(0,0,0,0.1)',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Avg: ' + context.raw.toLocaleString(undefined, {minimumFractionDigits: 2});
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    y: {
-                        grid: { color: '#f1f3f4' },
-                        border: { display: false },
-                        ticks: { font: { size: 10 } }
                     },
-                    x: {
-                        grid: { display: false },
-                        border: { display: false },
-                        ticks: { font: { size: 10 } }
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            border: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: { display: false }
+                        }
                     }
-                }
-            }
-        });
-    }
-
-    // ---- All column insight data from backend ----
-    const allColStats     = {{ reports.stats | default({}) | tojson }};
-    const colInsightData  = {{ reports.intelligence.column_insights | default({}) | tojson }};
-    const globalTakeaway  = {{ (reports.intelligence.takeaway | default('')) | tojson }};
-    const globalExplain   = {{ (reports.intelligence.explanation | default('')) | tojson }};
-
-    function toggleFilter() {
-        const modal = new bootstrap.Modal(document.getElementById('filterModal'));
-        modal.show();
-    }
-
-    function selectAll(state) {
-        document.querySelectorAll('.column-filter-checkbox').forEach(cb => cb.checked = state);
-    }
-
-    function applyFilters() {
-        const selectedCols = Array.from(
-            document.querySelectorAll('.column-filter-checkbox:checked')
-        ).map(cb => cb.value);
-
-        // --- 1. Update distribution chart ---
-        if (distributionChart) {
-            const newLabels = [];
-            const newData   = [];
-            selectedCols.forEach(col => {
-                if (allColStats[col]) {
-                    newLabels.push(col);
-                    newData.push(allColStats[col].mean);
                 }
             });
-            distributionChart.data.labels = newLabels.slice(0, 8);
-            distributionChart.data.datasets[0].data = newData.slice(0, 8);
-            distributionChart.update();
         }
-
-        // --- 2. Derive dynamic insights from selected columns ---
-        const numericSelected = selectedCols.filter(c => allColStats[c]);
-        const n = numericSelected.length;
-
-        if (n === 0) {
-            document.getElementById('displayTakeaway').innerText =
-                'No numeric features selected. Please enable at least one column to generate insights.';
-            document.getElementById('displayExplanation').innerText =
-                'Select one or more numeric columns using the Configure Features button to activate the intelligence layer.';
-            bootstrap.Modal.getInstance(document.getElementById('filterModal')).hide();
-            return;
-        }
-
-        // Compute per-selected-column insights
-        const means    = numericSelected.map(c => allColStats[c].mean);
-        const stds     = numericSelected.map(c => allColStats[c].std);
-        const cvValues = numericSelected.map((c, i) => means[i] !== 0 ? stds[i] / Math.abs(means[i]) : 0);
-        const avgCV    = cvValues.reduce((a, b) => a + b, 0) / n;
-
-        // High-volatility columns in selection
-        const highVolCols = numericSelected.filter((c, i) => cvValues[i] > 1.0);
-
-        // Build takeaway
-        let takeaway;
-        if (n === 1) {
-            const col = numericSelected[0];
-            const cv  = cvValues[0];
-            const insight = colInsightData[col];
-            if (insight) {
-                takeaway = insight.takeaway;
-            } else if (cv > 1.0) {
-                takeaway = `High volatility detected in ${col}. Monitor closely before making strategic decisions.`;
-            } else {
-                takeaway = `${col} is operating within normal statistical boundaries. No immediate action required.`;
-            }
-        } else if (highVolCols.length > 0) {
-            takeaway = `Volatility risk detected in ${highVolCols.join(', ')}. ` +
-                `Prioritise stabilising these ${highVolCols.length > 1 ? 'features' : 'feature'} before scaling.`;
-        } else if (avgCV < 0.15) {
-            const colList = numericSelected.slice(0, 3).join(', ');
-            takeaway = `Selected features (${colList}) are highly stable. System is performing predictably — safe to plan ahead.`;
-        } else {
-            const colList = numericSelected.slice(0, 3).join(', ');
-            takeaway = `Moderate variability across ${colList}. Continue monitoring and refine segment-level analysis.`;
-        }
-
-        // Build explanation
-        const avgStd = stds.reduce((a, b) => a + b, 0) / n;
-        const stabilityLabel = avgCV < 0.2 ? 'stable' : (avgCV > 0.8 ? 'highly volatile' : 'moderately variable');
-        const explanation = `Analysis of ${n} selected feature${n > 1 ? 's' : ''} ` +
-            `(${numericSelected.slice(0, 3).join(', ')}${n > 3 ? '…' : ''}) shows ` +
-            `${stabilityLabel} patterns with an average deviation of ${avgStd.toFixed(2)}. ` +
-            (highVolCols.length > 0
-                ? `Particular attention is needed for ${highVolCols[0]} due to extreme fluctuations.`
-                : `No critical anomalies were detected in the selected scope.`);
-
-        // --- 3. Update DOM ---
-        document.getElementById('displayTakeaway').innerText  = takeaway;
-        document.getElementById('displayExplanation').innerText = explanation;
-
-        // --- 4. Close modal ---
-        bootstrap.Modal.getInstance(document.getElementById('filterModal')).hide();
-    }
-
-    function exportData() {
-        window.location.href = '/export-eda';
-    }
+    });
 </script>
 
 {% endblock %}
