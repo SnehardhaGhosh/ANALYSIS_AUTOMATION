@@ -1,120 +1,374 @@
 {% extends "base.html" %}
 {% block content %}
 
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
   /* ===== AUTH PAGE GLOBAL STYLES ===== */
   body {
     font-family: 'Outfit', sans-serif !important;
-    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%) !important;
+    color: #f8fafc;
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
   }
 
-  /* Animated background orbs */
+  /* Custom animated grid background */
   body::before {
     content: "";
-    position: fixed; top: -20%; left: -10%;
-    width: 500px; height: 500px;
-    background: rgba(59,130,246,0.25);
-    border-radius: 50%;
-    filter: blur(80px);
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
     z-index: 0;
-    animation: drift 18s infinite alternate ease-in-out;
-  }
-  body::after {
-    content: "";
-    position: fixed; bottom: -15%; right: -10%;
-    width: 600px; height: 600px;
-    background: rgba(139,92,246,0.2);
-    border-radius: 50%;
-    filter: blur(80px);
-    z-index: 0;
-    animation: drift 22s infinite alternate-reverse ease-in-out;
-  }
-  @keyframes drift {
-    from { transform: translate(0,0) scale(1); }
-    to   { transform: translate(80px, 60px) scale(1.15); }
+    pointer-events: none;
   }
 
+  /* Animated background glowing orbs */
+  .glow-orb-1 {
+    position: fixed; top: -10%; left: -10%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(99, 102, 241, 0.05) 50%, transparent 100%);
+    filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
+    animation: drift 25s infinite alternate ease-in-out;
+  }
+  
+  .glow-orb-2 {
+    position: fixed; bottom: -10%; right: -10%;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.05) 50%, transparent 100%);
+    filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
+    animation: drift 30s infinite alternate-reverse ease-in-out;
+  }
+
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(120px, 80px) scale(1.1); }
+  }
+
+  /* Container Overrides for Full-Width Dashboard Vibe */
   .auth-wrapper {
     position: relative;
     z-index: 1;
-    min-height: calc(100vh - 80px);
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    padding: 2.5rem 0 4rem;
+  }
+
+  @media (max-width: 1024px) {
+    .auth-wrapper {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      padding: 1.5rem 0;
+    }
+    .analyst-preview-panel {
+      display: none; /* Hide complex UI elements on tablets/mobiles */
+    }
+  }
+
+  /* ===== LEFT COLUMN: INTERACTIVE PREVIEW PANEL ===== */
+  .analyst-preview-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    animation: slideRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideRight {
+    from { opacity: 0; transform: translateX(-40px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .panel-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .panel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  }
+
+  .panel-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-top: 0.75rem;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #ffffff 30%, #93c5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .panel-desc {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 540px;
+  }
+
+  /* Interactive Dashboard Cards */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .metric-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 1.25rem;
     display: flex;
     align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.15);
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  .metric-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    background: rgba(59, 130, 246, 0.1);
+    display: flex; align-items: center; justify-content: center;
+    color: #3b82f6; font-size: 1.25rem;
+    transition: all 0.3s;
+  }
+
+  .metric-card:hover .metric-icon {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  }
+
+  .metric-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-value {
+    font-size: 1.15rem; font-weight: 800; color: white;
+  }
+
+  .metric-label {
+    font-size: 0.77rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* Live Agent Console (Interactive Terminal) */
+  .terminal-card {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+  }
+
+  .terminal-header {
+    background: rgba(30, 41, 59, 0.5);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .terminal-dots {
+    display: flex; gap: 6px;
+  }
+
+  .terminal-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .dot-red { background: #ef4444; }
+  .dot-yellow { background: #eab308; }
+  .dot-green { background: #22c55e; }
+
+  .terminal-title {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem; color: #64748b; font-weight: 600;
+  }
+
+  .terminal-body {
+    padding: 1.25rem;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #38bdf8;
+    height: 180px;
+    overflow-y: auto;
+  }
+
+  .terminal-line {
+    margin-bottom: 0.4rem;
+    opacity: 0;
+    animation: typeIn 0.3s forwards ease-out;
+  }
+
+  @keyframes typeIn {
+    to { opacity: 1; }
+  }
+
+  .term-sys { color: #f43f5e; }
+  .term-mod { color: #10b981; }
+  .term-pip { color: #a855f7; }
+  .term-msg { color: #e2e8f0; }
+
+  /* Supported Formats Banner */
+  .formats-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .format-title {
+    font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .format-tag {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #cbd5e1;
+    font-size: 0.75rem; font-weight: 700;
+    padding: 0.25rem 0.6rem; border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .format-tag:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+  }
+
+
+  /* ===== RIGHT COLUMN: GLASSMORPHIC AUTH CARD ===== */
+  .auth-card-container {
+    display: flex;
     justify-content: center;
-    padding: 2rem 1rem;
+    animation: slideLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideLeft {
+    from { opacity: 0; transform: translateX(40px); }
+    to   { opacity: 1; transform: translateX(0); }
   }
 
   .auth-card {
-    background: rgba(255,255,255,0.75);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255,255,255,0.6);
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 28px;
-    box-shadow: 0 20px 60px rgba(31,38,135,0.12), 0 1px 0 rgba(255,255,255,0.8) inset;
-    padding: 3rem 2.5rem;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 4px 30px rgba(59, 130, 246, 0.04);
+    padding: 2.75rem 2.25rem;
     width: 100%;
     max-width: 440px;
-    animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+    position: relative;
+    overflow: hidden;
   }
-  @keyframes slideUp {
-    from { opacity:0; transform:translateY(30px); }
-    to   { opacity:1; transform:translateY(0); }
+
+  /* Elegant colored overlay inside form card */
+  .auth-card::after {
+    content: "";
+    position: absolute; top: -50px; right: -50px;
+    width: 120px; height: 120px;
+    background: rgba(99, 102, 241, 0.12);
+    border-radius: 50%;
+    filter: blur(35px);
+    z-index: 0;
+  }
+
+  .brand-header {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 2rem;
   }
 
   .brand-icon {
-    width: 72px; height: 72px;
-    background: linear-gradient(135deg,#3b82f6,#8b5cf6);
-    border-radius: 20px;
+    width: 68px; height: 68px;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border-radius: 18px;
     display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.5rem;
-    box-shadow: 0 10px 30px rgba(59,130,246,0.35);
+    margin: 0 auto 1.25rem;
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.35), 0 0 0 1px rgba(255,255,255,0.2) inset;
   }
   .brand-icon i { font-size: 1.75rem; color: white; }
 
   .auth-title {
-    font-size: 1.85rem; font-weight: 800;
-    background: linear-gradient(135deg,#1e293b,#3b82f6);
+    font-size: 1.75rem; font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 40%, #cbd5e1 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    text-align: center; letter-spacing: -0.5px;
-    margin-bottom: 0.4rem;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
   }
   .auth-subtitle {
-    text-align: center; color: #64748b;
-    font-size: 0.9rem; margin-bottom: 2rem;
+    color: #94a3b8;
+    font-size: 0.875rem; font-weight: 500;
   }
 
-  /* Form Fields */
-  .field-group { position: relative; margin-bottom: 1.25rem; }
+  /* Glassmorphic Form Fields */
+  .field-group { position: relative; margin-bottom: 1.25rem; z-index: 1; }
+  
   .field-group label {
-    font-size: 0.8rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    color: #475569; margin-bottom: 0.5rem;
+    font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: #94a3b8; margin-bottom: 0.5rem;
     display: flex; align-items: center; gap: 0.4rem;
   }
+  
   .field-group .form-control {
-    background: rgba(255,255,255,0.6);
-    border: 1.5px solid rgba(203,213,225,0.8);
+    background: rgba(15, 23, 42, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
-    padding: 0.8rem 1rem 0.8rem 3rem;
+    padding: 0.8rem 1rem 0.8rem 2.8rem;
     font-size: 0.95rem;
-    color: #1e293b;
-    transition: all 0.25s;
+    color: #f8fafc;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     height: auto;
   }
+  
+  .field-group .form-control::placeholder {
+    color: #475569;
+  }
+
   .field-group .form-control:focus {
-    background: rgba(255,255,255,0.95);
+    background: rgba(15, 23, 42, 0.7);
     border-color: #3b82f6;
-    box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
     outline: none;
   }
+
   .field-icon {
     position: absolute; left: 1rem;
-    bottom: 13px; color: #94a3b8;
+    bottom: 14px; color: #475569;
     pointer-events: none;
     transition: color 0.2s;
   }
@@ -122,29 +376,32 @@
 
   /* Toggle Password */
   .toggle-pw {
-    position: absolute; right: 1rem; bottom: 13px;
-    cursor: pointer; color: #94a3b8;
+    position: absolute; right: 1rem; bottom: 14px;
+    cursor: pointer; color: #475569;
     transition: color 0.2s;
     border: none; background: none; padding: 0;
   }
   .toggle-pw:hover { color: #3b82f6; }
 
-  /* Submit Button */
+  /* Auth Button */
   .btn-auth {
     width: 100%;
     padding: 0.85rem;
-    background: linear-gradient(135deg,#3b82f6,#8b5cf6);
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
     border: none; border-radius: 14px;
-    color: white; font-size: 1rem; font-weight: 700;
-    letter-spacing: 0.3px;
-    box-shadow: 0 8px 24px rgba(59,130,246,0.35);
-    transition: all 0.25s;
+    color: white; font-size: 0.95rem; font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     margin-top: 0.5rem;
+    position: relative;
+    z-index: 1;
   }
   .btn-auth:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(59,130,246,0.45);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.35);
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
   }
   .btn-auth:active { transform: translateY(0); }
 
@@ -155,99 +412,194 @@
     display: flex; align-items: center; gap: 0.6rem;
     margin-bottom: 1.25rem; border: none;
     animation: fadeIn 0.3s ease;
+    z-index: 1; position: relative;
   }
-  .auth-alert-danger { background: rgba(239,68,68,0.1); color: #b91c1c; border-left: 4px solid #ef4444; }
-  .auth-alert-success { background: rgba(16,185,129,0.1); color: #047857; border-left: 4px solid #10b981; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+  .auth-alert-danger { background: rgba(239, 68, 68, 0.08); color: #f87171; border-left: 4px solid #ef4444; }
+  .auth-alert-success { background: rgba(16, 185, 129, 0.08); color: #34d399; border-left: 4px solid #10b981; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
   /* Divider */
   .auth-divider {
     text-align: center; margin: 1.5rem 0;
-    position: relative; color: #94a3b8; font-size: 0.8rem; font-weight: 600;
+    position: relative; color: #475569; font-size: 0.77rem; font-weight: 700;
+    letter-spacing: 0.8px;
+    z-index: 1;
   }
   .auth-divider::before, .auth-divider::after {
-    content:""; position:absolute; top:50%; width:42%;
-    height:1px; background:rgba(148,163,184,0.3);
+    content: ""; position: absolute; top: 50%; width: 40%;
+    height: 1px; background: rgba(255, 255, 255, 0.06);
   }
-  .auth-divider::before { left:0; }
-  .auth-divider::after { right:0; }
+  .auth-divider::before { left: 0; }
+  .auth-divider::after { right: 0; }
 
   /* Footer links */
-  .auth-footer { text-align:center; font-size:0.875rem; color:#64748b; margin-top:1.5rem; }
+  .auth-footer { text-align: center; font-size: 0.875rem; color: #94a3b8; margin-top: 1.5rem; z-index: 1; position: relative; }
   .auth-footer a {
-    color:#3b82f6; font-weight:700; text-decoration:none;
-    transition: color 0.2s;
+    color: #60a5fa; font-weight: 700; text-decoration: none;
+    transition: all 0.2s;
   }
-  .auth-footer a:hover { color:#8b5cf6; }
+  .auth-footer a:hover { color: #818cf8; text-decoration: underline; }
 
-  /* Strength Bar */
-  .strength-bar { height:4px; border-radius:4px; transition:all 0.3s; margin-top:6px; }
 </style>
 
+<div class="glow-orb-1"></div>
+<div class="glow-orb-2"></div>
+
 <div class="auth-wrapper">
-  <div class="auth-card">
-
-    <div class="brand-icon">
-      <i class="fas fa-brain"></i>
+  
+  <!-- LEFT COLUMN: INTERACTIVE AI DATA PREVIEW PANEL -->
+  <div class="analyst-preview-panel">
+    
+    <div class="panel-header">
+      <div class="panel-badge">
+        <i class="fas fa-brain-circuit"></i> AI Analytics Core
+      </div>
+      <h1 class="panel-title">Next-Gen AI<br>Data Analyst</h1>
+      <p class="panel-desc">
+        Validate datasets, clean anomalies, perform deep statistical analysis, and generate predictive modeling in seconds using direct LLM intelligence.
+      </p>
     </div>
-    <h1 class="auth-title">Welcome Back</h1>
-    <p class="auth-subtitle">Sign in to your AI Data Analyst account</p>
 
-    {% if error %}
-    <div class="auth-alert auth-alert-danger">
-      <i class="fas fa-exclamation-circle"></i> {{ error }}
-    </div>
-    {% endif %}
-
-    {% if request.args.get('registered') %}
-    <div class="auth-alert auth-alert-success">
-      <i class="fas fa-check-circle"></i> Account created! Please sign in.
-    </div>
-    {% endif %}
-
-    <form method="POST" action="/login" id="loginForm">
-
-      <div class="field-group">
-        <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
-        <i class="fas fa-envelope field-icon"></i>
-        <input type="email" class="form-control" id="email" name="email"
-               placeholder="you@example.com" required autocomplete="email">
+    <!-- Interactive Metrics Panel -->
+    <div class="dashboard-grid">
+      <div class="metric-card" onclick="triggerPulsingEffect(this)">
+        <div class="metric-icon">
+          <i class="fas fa-shield-halved text-success"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">99.8%</span>
+          <span class="metric-label">Data Integrity</span>
+        </div>
       </div>
 
-      <div class="field-group">
-        <label for="password"><i class="fas fa-lock"></i> Password</label>
-        <i class="fas fa-lock field-icon"></i>
-        <input type="password" class="form-control" id="password" name="password"
-               placeholder="Enter your password" required>
-        <button type="button" class="toggle-pw" onclick="togglePw('password',this)">
-          <i class="fas fa-eye"></i>
-        </button>
+      <div class="metric-card" onclick="triggerPulsingEffect(this)">
+        <div class="metric-icon">
+          <i class="fas fa-gears text-primary"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value" style="color:#22c55e;">Ready</span>
+          <span class="metric-label">Pipeline Engine</span>
+        </div>
       </div>
 
-      <div class="d-flex justify-content-end mb-3">
-        <a href="/forgot-password" style="font-size:0.82rem;color:#3b82f6;text-decoration:none;font-weight:600;">
-          <i class="fas fa-key me-1"></i>Forgot password?
-        </a>
+      <div class="metric-card" onclick="triggerPulsingEffect(this)">
+        <div class="metric-icon">
+          <i class="fas fa-network-wired text-info"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">LLaMA-3 & Gemini</span>
+          <span class="metric-label">LLMs Integrated</span>
+        </div>
       </div>
 
-      <button type="submit" class="btn-auth" id="submitBtn">
-        <span id="btnText"><i class="fas fa-arrow-right me-2"></i>Sign In & Get OTP</span>
-        <span id="btnSpinner" class="d-none">
-          <span class="spinner-border spinner-border-sm me-2"></span>Sending OTP...
-        </span>
-      </button>
-    </form>
+      <div class="metric-card" onclick="triggerPulsingEffect(this)">
+        <div class="metric-icon">
+          <i class="fas fa-bolt text-warning"></i>
+        </div>
+        <div class="metric-info">
+          <span class="metric-value">&lt; 150ms</span>
+          <span class="metric-label">Response Time</span>
+        </div>
+      </div>
+    </div>
 
-    <div class="auth-divider">OR</div>
+    <!-- Live AI Analyst Console (Interactive Scrolling Terminal) -->
+    <div class="terminal-card">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="terminal-dot dot-red"></div>
+          <div class="terminal-dot dot-yellow"></div>
+          <div class="terminal-dot dot-green"></div>
+        </div>
+        <div class="terminal-title">ai-analyst-agent.log</div>
+        <div style="width: 30px;"></div>
+      </div>
+      <div class="terminal-body" id="terminalBody">
+        <!-- Lines will be dynamically appended here via JavaScript for absolute immersion -->
+      </div>
+    </div>
 
-    <div class="auth-footer">
-      Don't have an account? <a href="/register">Create one free →</a>
+    <!-- Supported Formats banner -->
+    <div class="formats-container">
+      <span class="format-title">Supported Data:</span>
+      <span class="format-tag">CSV</span>
+      <span class="format-tag">XLSX</span>
+      <span class="format-tag">JSON</span>
+      <span class="format-tag">JSONL</span>
     </div>
 
   </div>
+
+  <!-- RIGHT COLUMN: GLASSMORPHIC AUTH CARD -->
+  <div class="auth-card-container">
+    <div class="auth-card">
+
+      <div class="brand-header">
+        <div class="brand-icon">
+          <i class="fas fa-brain"></i>
+        </div>
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to your AI Analyst workspace</p>
+      </div>
+
+      {% if error %}
+      <div class="auth-alert auth-alert-danger">
+        <i class="fas fa-exclamation-circle"></i> {{ error }}
+      </div>
+      {% endif %}
+
+      {% if request.args.get('registered') %}
+      <div class="auth-alert auth-alert-success">
+        <i class="fas fa-check-circle"></i> Account created! Please sign in.
+      </div>
+      {% endif %}
+
+      <form method="POST" action="/login" id="loginForm">
+
+        <div class="field-group">
+          <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+          <i class="fas fa-envelope field-icon"></i>
+          <input type="email" class="form-control" id="email" name="email"
+                 placeholder="you@example.com" required autocomplete="email">
+        </div>
+
+        <div class="field-group">
+          <label for="password"><i class="fas fa-lock"></i> Password</label>
+          <i class="fas fa-lock field-icon"></i>
+          <input type="password" class="form-control" id="password" name="password"
+                 placeholder="Enter your password" required>
+          <button type="button" class="toggle-pw" onclick="togglePw('password', this)">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+
+        <div class="d-flex justify-content-end mb-4">
+          <a href="/forgot-password" style="font-size: 0.8rem; color: #60a5fa; text-decoration: none; font-weight: 700; transition: color 0.2s;">
+            <i class="fas fa-key me-1"></i>Forgot password?
+          </a>
+        </div>
+
+        <button type="submit" class="btn-auth" id="submitBtn">
+          <span id="btnText"><i class="fas fa-arrow-right me-2"></i>Sign In & Get OTP</span>
+          <span id="btnSpinner" class="d-none">
+            <span class="spinner-border spinner-border-sm me-2"></span>Authenticating...
+          </span>
+        </button>
+      </form>
+
+      <div class="auth-divider">OR</div>
+
+      <div class="auth-footer">
+        Don't have an account? <a href="/register">Create one free →</a>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <script>
+  // Password Visibility Toggle
   function togglePw(fieldId, btn) {
     const field = document.getElementById(fieldId);
     const icon = btn.querySelector('i');
@@ -260,10 +612,89 @@
     }
   }
 
+  // Submit Spinner
   document.getElementById('loginForm').addEventListener('submit', function() {
     document.getElementById('btnText').classList.add('d-none');
     document.getElementById('btnSpinner').classList.remove('d-none');
   });
+
+  // Pulse effect on clicking metric cards
+  function triggerPulsingEffect(card) {
+    card.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      card.style.transform = 'translateY(-4px)';
+    }, 150);
+  }
+
+  // --- Real-time Scrolling AI Terminal simulation ---
+  const terminalLines = [
+    { type: 'sys', text: 'Initializing AI Data Analyst Engine v2.4...' },
+    { type: 'mod', text: 'Connecting to Groq LLaMA-3... Verified (latency: 38ms).' },
+    { type: 'mod', text: 'Connecting to Google Gemini Pro... Verified (latency: 110ms).' },
+    { type: 'sys', text: 'Pre-caching analytical inference frameworks.' },
+    { type: 'pip', text: 'Loading data preprocessing pipeline... [SUCCESS]' },
+    { type: 'pip', text: 'Loading anomaly cleaning module... [SUCCESS]' },
+    { type: 'pip', text: 'Loading predictive analytics engine... [SUCCESS]' },
+    { type: 'msg', text: 'System diagnostics complete. All systems are green.' },
+    { type: 'sys', text: 'Awaiting user authentication...' },
+    { type: 'msg', text: 'Ready. Supporting CSV, XLSX, JSON, and JSONL formats.' },
+    { type: 'pip', text: 'Data Importer: idle.' },
+    { type: 'mod', text: 'Waiting for secure workspace OTP authorization...' }
+  ];
+
+  const terminalBody = document.getElementById('terminalBody');
+  let lineIndex = 0;
+
+  function appendTerminalLine() {
+    if (lineIndex >= terminalLines.length) {
+      // Loop logs or show heartbeat
+      const heartbeat = { 
+        type: 'sys', 
+        text: `Heartbeat check... active. [${new Date().toLocaleTimeString()}]` 
+      };
+      addConsoleLine(heartbeat);
+      return;
+    }
+    
+    addConsoleLine(terminalLines[lineIndex]);
+    lineIndex++;
+  }
+
+  function addConsoleLine(lineData) {
+    const div = document.createElement('div');
+    div.className = 'terminal-line';
+    
+    const prefixSpan = document.createElement('span');
+    if (lineData.type === 'sys') {
+      prefixSpan.className = 'term-sys';
+      prefixSpan.innerText = '[SYSTEM] ';
+    } else if (lineData.type === 'mod') {
+      prefixSpan.className = 'term-mod';
+      prefixSpan.innerText = '[MODEL]  ';
+    } else if (lineData.type === 'pip') {
+      prefixSpan.className = 'term-pip';
+      prefixSpan.innerText = '[PIPELINE]';
+    } else {
+      prefixSpan.className = 'term-msg';
+      prefixSpan.innerText = '[MONITOR]';
+    }
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'term-msg';
+    textSpan.innerText = ` ${lineData.text}`;
+    
+    div.appendChild(prefixSpan);
+    div.appendChild(textSpan);
+    terminalBody.appendChild(div);
+    
+    // Auto scroll to bottom
+    terminalBody.scrollTop = terminalBody.scrollHeight;
+  }
+
+  // Initialize scrolling console
+  setTimeout(appendTerminalLine, 400);
+  setInterval(appendTerminalLine, 2400);
+
 </script>
 
 {% endblock %}

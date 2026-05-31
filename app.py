@@ -1,10 +1,6 @@
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 import os
-import pandas as pd
-import logging
-import logging.handlers
+import sys
 from dotenv import load_dotenv
-from flask_session import Session
 
 # Load environment variables first
 load_dotenv(dotenv_path=".env")
@@ -19,46 +15,15 @@ os.makedirs(Config.CLEANED_FOLDER, exist_ok=True)
 os.makedirs(log_folder, exist_ok=True)
 os.makedirs('instance', exist_ok=True)
 
-# Setup logging with a direct rotating file handler for immediate writes
-log_file = os.path.join(log_folder, 'app.log')
-_listener_started = False
+# Initialize logging immediately
+from modules.logger import setup_logging
+setup_logging()
 
-def _setup_logging():
-    """Initialize logging with a rotating file handler"""
-    global _listener_started
-    
-    if _listener_started:
-        return
-    
-    class FlushingFileHandler(logging.FileHandler):
-        def emit(self, record):
-            super().emit(record)
-            self.flush()  # Flush after each log write for real-time visibility
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
+import pandas as pd
+import logging
+from flask_session import Session
 
-    # Create handlers
-    rotating_handler = FlushingFileHandler(
-        log_file,
-        encoding='utf-8'
-    )
-    rotating_handler.setFormatter(
-        logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    )
-    rotating_handler.setLevel(logging.INFO)
-
-    # Configure root logger
-    root_logger = logging.getLogger()
-    if root_logger.handlers:
-        for handler in list(root_logger.handlers):
-            root_logger.removeHandler(handler)
-    root_logger.setLevel(logging.INFO)
-    root_logger.addHandler(rotating_handler)
-
-    # Keep Flask's werkzeug logging at INFO level to log HTTP requests to localhost
-    logging.getLogger('werkzeug').setLevel(logging.INFO)
-    _listener_started = True
-
-# Initialize logging
-_setup_logging()
 logger = logging.getLogger(__name__)
 
 # Modules
@@ -1373,12 +1338,8 @@ import signal
 
 def shutdown_logging():
     """Gracefully shutdown the logging system"""
-    global _listener_started
-    
     try:
-        if _listener_started:
-            logging.shutdown()
-            _listener_started = False
+        logging.shutdown()
     except Exception:
         # Silently ignore errors during shutdown (common in Flask debug reloader)
         pass
